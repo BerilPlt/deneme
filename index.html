@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spare Parts Tracking – UI Simulation</title>
+  <style>
+    :root { --bg:#0b1020; --card:#121a33; --muted:#9aa7c7; --text:#e8eeff; --line:#233055; --good:#2ecc71; --warn:#f1c40f; --bad:#e74c3c; }
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    body{margin:0;background:linear-gradient(180deg,#070b16, #0b1020);color:var(--text)}
+    header{padding:18px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(11,16,32,.9);backdrop-filter: blur(8px);z-index:10}
+    h1{margin:0;font-size:18px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:10px}
+    select,button,input{
+      background:var(--card);color:var(--text);border:1px solid var(--line);
+      padding:10px 12px;border-radius:10px;outline:none
+    }
+    button{cursor:pointer}
+    button.primary{border-color:#3a59ff}
+    button.ghost{background:transparent}
+    main{padding:18px;max-width:1100px;margin:0 auto}
+    .tabs{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 16px}
+    .tab{padding:10px 12px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--text);cursor:pointer}
+    .tab.active{background:var(--card);border-color:#3a59ff}
+    .grid{display:grid;grid-template-columns: 1fr 1fr; gap:14px}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+    .card{background:rgba(18,26,51,.8);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .card h2{margin:0 0 10px;font-size:15px}
+    .muted{color:var(--muted);font-size:13px}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}
+    th{color:var(--muted);font-weight:600}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px}
+    .dot{width:8px;height:8px;border-radius:50%}
+    .good{background:var(--good)} .warn{background:var(--warn)} .bad{background:var(--bad)} .na{background:#6c7aa6}
+    .pill.good{border-color:rgba(46,204,113,.5)} .pill.warn{border-color:rgba(241,196,15,.5)} .pill.bad{border-color:rgba(231,76,60,.5)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .split{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .divider{height:1px;background:var(--line);margin:12px 0}
+    .callout{border:1px dashed rgba(58,89,255,.6);border-radius:14px;padding:12px;background:rgba(58,89,255,.08)}
+    .success{border-color:rgba(46,204,113,.6);background:rgba(46,204,113,.08)}
+    .danger{border-color:rgba(231,76,60,.6);background:rgba(231,76,60,.08)}
+    .warnbox{border-color:rgba(241,196,15,.6);background:rgba(241,196,15,.08)}
+    .small{font-size:12px;color:var(--muted)}
+    .right{display:flex;gap:10px;align-items:center}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;color:var(--muted)}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Spare Parts Delivery – UI Simulation (GitHub Pages Mock)</h1>
+  <div class="row">
+    <label class="muted">Scenario</label>
+    <select id="scenario"></select>
+
+    <label class="muted">Technician</label>
+    <select id="tech"></select>
+
+    <div class="right">
+      <span class="muted">Last refresh:</span>
+      <span id="lastRefresh" class="kbd">—</span>
+      <button id="refreshBtn" class="ghost">Refresh</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="van">Van Stock</button>
+    <button class="tab" data-tab="incoming">Incoming Deliveries</button>
+    <button class="tab" data-tab="detail">Delivery Detail</button>
+  </div>
+</header>
+
+<main>
+  <div id="view"></div>
+</main>
+
+<script>
+  // ---------------------------
+  // Mock Data
+  // ---------------------------
+  const technicians = [
+    { id: "T-1023", name: "Technician 1023 (Own)" },
+    { id: "T-2044", name: "Technician 2044 (Denied Example)" },
+  ];
+
+  const scenarios = [
+    { id: "happy", label: "Happy path (Shipped → Received)" },
+    { id: "not_confirmed", label: "Not Confirmed (ERP outcome)" },
+    { id: "not_shipped", label: "Not Shipped (Warehouse outcome)" },
+    { id: "box_missing", label: "Box ID Missing (Shipped but no box)" },
+    { id: "damaged", label: "Damaged on receipt (attachments)" },
+  ];
+
+  // Base dataset for a single WO + delivery
+  function buildData(scenarioId, technicianId) {
+    // "Own technician only" simulation:
+    const isOwn = technicianId === "T-1023";
+
+    const wo = {
+      woId: "WO-100045",
+      customer: "Miller GmbH",
+      appointment: "2026-01-12 10:00",
+      frozen: true,
+    };
+
+    const delivery = {
+      boxId: (scenarioId === "box_missing") ? null : "BX-7781",
+      shippedAt: "2026-01-10 16:40",
+      items: [
+        { partId: "P-44120", desc: "Pump Assembly", qty: 1, status: "Shipped" },
+        { partId: "P-22011", desc: "Seal Kit", qty: 2, status: "Shipped" },
+      ],
+      receipt: { status: "Pending", reason: null, attachments: [] }
+    };
+
+    const materials = [
+      { partId: "P-44120", desc: "Pump Assembly", qty: 1, status: "Frozen" },
+      { partId: "P-22011", desc: "Seal Kit", qty: 2, status: "Frozen" },
+    ];
+
+    // Scenario-specific status progression:
+    if (scenarioId === "not_confirmed") {
+      materials[0].status = "Not Confirmed";
+      materials[1].status = "Confirmed";
+      delivery.items[0].status = "N/A";
+      delivery.items[1].status = "N/A";
+    }
+    if (scenarioId === "not_shipped") {
+      materials[0].status = "Confirmed";
+      materials[1].status = "Not Shipped";
+      delivery.items[0].status = "Shipped";
+      delivery.items[1].status = "Not Shipped";
+    }
+    if (scenarioId === "happy") {
+      materials[0].status = "Shipped";
+      materials[1].status = "Shipped";
+    }
+    if (scenarioId === "box_missing") {
+      materials[0].status = "Shipped";
+      materials[1].status = "Shipped";
+    }
+    if (scenarioId === "damaged") {
+      materials[0].status = "Shipped";
+      materials[1].status = "Shipped";
+    }
+
+    const vanStock = [
+      { partId: "P-10001", desc: "Standard Filter", qty: 3, bucket: "Available" },
+      { partId: "P-44120", desc: "Pump Assembly", qty: 1, bucket: "On Hand" },
+      { partId: "P-22011", desc: "Seal Kit", qty: 2, bucket: "On Hand" },
+      { partId: "P-33007", desc: "Control Board", qty: 1, bucket: "Allocated", ref: "WO-100012 (2nd visit)" },
+      { partId: "P-90009", desc: "Hose Set", qty: 1, bucket: "On Order", ref: "ETA 2026-01-14" },
+    ];
+
+    // If not own tech, deny van stock + incoming deliveries
+    return { isOwn, wo, materials, delivery, vanStock };
+  }
+
+  // ---------------------------
+  // UI helpers
+  // ---------------------------
+  const state = {
+    tab: "van",
+    scenarioId: "happy",
+    technicianId: "T-1023",
+    data: null,
+  };
+
+  function nowStamp() {
+    const d = new Date();
+    const pad = (n)=> String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
+  function pill(label, tone="na") {
+    const map = { good:"good", warn:"warn", bad:"bad", na:"na" };
+    const dotClass = map[tone] || "na";
+    const pillClass = (tone === "good" || tone === "warn" || tone === "bad") ? tone : "";
+    return `<span class="pill ${pillClass}"><span class="dot ${dotClass}"></span>${label}</span>`;
+  }
+
+  function statusPill(status) {
+    const s = String(status || "");
+    if (s === "Received") return pill("Received", "good");
+    if (s === "Shipped") return pill("Shipped", "warn");
+    if (s === "Confirmed") return pill("Confirmed", "warn");
+    if (s === "Frozen") return pill("Frozen", "na");
+    if (s === "Not Confirmed") return pill("Not Confirmed", "bad");
+    if (s === "Not Shipped") return pill("Not Shipped", "bad");
+    if (s === "Not Received") return pill("Not Received", "bad");
+    if (s === "Damaged") return pill("Damaged", "bad");
+    return pill(s || "N/A", "na");
+  }
+
+  function render() {
+    state.data = buildData(state.scenarioId, state.technicianId);
+    const { isOwn } = state.data;
+
+    const view = document.getElementById("view");
+    const tab = state.tab;
+
+    if (tab === "van") {
+      view.innerHTML = renderVanStock(isOwn);
+      return;
+    }
+    if (tab === "incoming") {
+      view.innerHTML = renderIncoming(isOwn);
+      return;
+    }
+    if (tab === "detail") {
+      view.innerHTML = renderDetail(isOwn);
+      bindDetailHandlers();
+      return;
+    }
+  }
+
+  function renderVanStock(isOwn) {
+    const { vanStock } = state.data;
+    if (!isOwn) {
+      return `
+        <div class="card danger">
+          <h2>Access denied</h2>
+          <div class="muted">Van stock is restricted to the logged-in technician only.</div>
+        </div>
+      `;
+    }
+
+    const rows = vanStock.map(i => `
+      <tr>
+        <td>${i.partId}</td>
+        <td>${i.desc}</td>
+        <td>${i.qty}</td>
+        <td>${pill(i.bucket, i.bucket === "On Hand" ? "good" : (i.bucket === "On Order" ? "warn" : "na"))}</td>
+        <td class="muted">${i.ref || "—"}</td>
+      </tr>
+    `).join("");
+
+    return `
+      <div class="grid">
+        <div class="card">
+          <div class="split">
+            <h2>Van Stock Inventory</h2>
+            <span class="muted">Technician: ${state.technicianId}</span>
+          </div>
+          <div class="muted">Source of truth: SAP-P4B (mocked). This view shows overall van inventory.</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Part ID</th><th>Description</th><th>Qty</th><th>Bucket</th><th>Reference</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Notes (for demo)</h2>
+          <div class="callout">
+            <div><b>Available</b> = default van stock</div>
+            <div><b>On Hand</b> = physically in van</div>
+            <div><b>Allocated</b> = reserved for a future WO</div>
+            <div><b>On Order</b> = missing, expected delivery</div>
+          </div>
+          <div class="divider"></div>
+          <div class="muted">
+            Tip: Use the <b>Scenario</b> selector to switch between delivery situations and see how the UI would behave.
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderIncoming(isOwn) {
+    const { wo, materials, delivery } = state.data;
+
+    if (!isOwn) {
+      return `
+        <div class="card danger">
+          <h2>Access denied</h2>
+          <div class="muted">Incoming deliveries are restricted to the logged-in technician only.</div>
+        </div>
+      `;
+    }
+
+    const actionable = (materials.some(m => m.status === "Shipped") || state.scenarioId === "box_missing" || state.scenarioId === "damaged");
+    const box = delivery.boxId ? delivery.boxId : "— (Missing)";
+    const boxWarn = delivery.boxId ? "" : `<div class="callout warnbox" style="margin-top:10px;"><b>Box ID Missing</b> – follow-up required.</div>`;
+
+    return `
+      <div class="card">
+        <div class="split">
+          <h2>Incoming Deliveries / Pending Receipts</h2>
+          <span class="muted">Technician: ${state.technicianId}</span>
+        </div>
+        <div class="muted">Shipped deliveries appear here until confirmed as Received / Not Received.</div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Box ID</th><th>Work Order</th><th>Customer</th><th>Shipped at</th><th>Status</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>${box}</td>
+              <td>${wo.woId}</td>
+              <td>${wo.customer}</td>
+              <td>${delivery.shippedAt}</td>
+              <td>${actionable ? statusPill("Shipped") : statusPill("N/A")}</td>
+              <td><button class="primary" onclick="goDetail()">Open</button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        ${boxWarn}
+        <div class="small" style="margin-top:10px;">Note: In a real app, scanning the Box ID could take the technician directly to the delivery detail screen.</div>
+      </div>
+    `;
+  }
+
+  function renderDetail(isOwn) {
+    const { wo, materials, delivery } = state.data;
+
+    if (!isOwn) {
+      return `
+        <div class="card danger">
+          <h2>Access denied</h2>
+          <div class="muted">Delivery details are restricted to the logged-in technician only.</div>
+        </div>
+      `;
+    }
+
+    const boxId = delivery.boxId ? delivery.boxId : "— (Missing)";
+    const warnBox = delivery.boxId ? "" : `<div class="callout warnbox"><b>Box ID Missing</b> – warehouse follow-up required.</div>`;
+    const receiptStatus = delivery.receipt.status;
+
+    const items = delivery.items.map((it, idx) => `
+      <tr>
+        <td>${it.partId}</td>
+        <td>${it.desc}</td>
+        <td>${it.qty}</td>
+        <td>${statusPill(it.status)}</td>
+        <td>
+          <label class="muted"><input type="checkbox" data-dmg="${idx}" /> Damaged</label>
+        </td>
+      </tr>
+    `).join("");
+
+    const attachments = delivery.receipt.attachments.map((a, i) => `<li>${a} <span class="muted">(mock)</span></li>`).join("");
+
+    const receiptCallout =
+      receiptStatus === "Received" ? `<div class="callout success"><b>Received</b> confirmed. Thank you.</div>` :
+      receiptStatus === "Not Received" ? `<div class="callout danger"><b>Not Received</b> submitted. Follow-up required.</div>` :
+      `<div class="callout"><b>Pending</b> receipt confirmation.</div>`;
+
+    return `
+      <div class="grid">
+        <div class="card">
+          <h2>Delivery Detail</h2>
+          <div class="muted">Work Order: <b>${wo.woId}</b> • Customer: <b>${wo.customer}</b> • Appointment: <b>${wo.appointment}</b></div>
+          <div style="margin-top:10px;">Box ID: <b>${boxId}</b> • Shipped at: <b>${delivery.shippedAt}</b></div>
+          <div class="divider"></div>
+
+          ${warnBox}
+          ${receiptCallout}
+
+          <table>
+            <thead>
+              <tr>
+                <th>Part ID</th><th>Description</th><th>Qty</th><th>Line Status</th><th>Damage</th>
+              </tr>
+            </thead>
+            <tbody>${items}</tbody>
+          </table>
+
+          <div class="actions">
+            <button id="btnReceived" class="primary">Confirm Received</button>
+            <button id="btnNotReceived">Mark Not Received</button>
+          </div>
+
+          <div class="divider"></div>
+          <div class="muted"><b>Damage evidence</b> (attachments required if any item is marked damaged)</div>
+          <div class="row">
+            <input id="fakeFileName" placeholder="e.g., damage_photo_1.jpg" />
+            <button id="btnAddAttachment">Add attachment (mock)</button>
+          </div>
+          <ul class="muted">${attachments || "<li>No attachments added</li>"}</ul>
+          <div class="small">In real implementation, this would be a photo capture/upload to the chosen storage.</div>
+        </div>
+
+        <div class="card">
+          <h2>CRM Material Tracking Snapshot (for demo)</h2>
+          <div class="muted">This is how WO material lines might appear in CRM.</div>
+          <table>
+            <thead>
+              <tr><th>Part</th><th>Description</th><th>Qty</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              ${materials.map(m=>`
+                <tr>
+                  <td>${m.partId}</td>
+                  <td>${m.desc}</td>
+                  <td>${m.qty}</td>
+                  <td>${statusPill(m.status)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+
+          <div class="divider"></div>
+          <div class="callout">
+            <div class="muted">
+              This screen is a simulation to help stakeholders visualize the process:
+              <br/>Frozen → Confirmed/Not Confirmed → Shipped/Not Shipped → Received/Not Received.
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function bindDetailHandlers() {
+    const btnReceived = document.getElementById("btnReceived");
+    const btnNotReceived = document.getElementById("btnNotReceived");
+    const btnAddAttachment = document.getElementById("btnAddAttachment");
+
+    btnAddAttachment.addEventListener("click", () => {
+      const name = document.getElementById("fakeFileName").value.trim();
+      if (!name) { alert("Enter a filename (mock)."); return; }
+      state.data.delivery.receipt.attachments.push(name);
+      document.getElementById("fakeFileName").value = "";
+      // re-render detail
+      render();
+    });
+
+    btnReceived.addEventListener("click", () => {
+      // If any damaged checkbox is checked, require at least one attachment
+      const damagedChecked = Array.from(document.querySelectorAll("input[type=checkbox][data-dmg]"))
+        .some(cb => cb.checked);
+
+      if (damagedChecked && state.data.delivery.receipt.attachments.length === 0) {
+        alert("Attachments are required when marking items as damaged.");
+        return;
+      }
+
+      // Update receipt status
+      state.data.delivery.receipt.status = "Received";
+
+      // Update CRM material statuses in this mock
+      state.data.materials?.forEach(m => { if (m.status === "Shipped") m.status = "Received"; });
+
+      alert("Received confirmed (mock).");
+      render();
+    });
+
+    btnNotReceived.addEventListener("click", () => {
+      const reason = prompt("Reason (e.g., Missing items / Not delivered / Damaged):", "Missing items");
+      state.data.delivery.receipt.status = "Not Received";
+      state.data.delivery.receipt.reason = reason || "Not received";
+      alert("Not Received submitted (mock).");
+      render();
+    });
+  }
+
+  function goDetail() {
+    setTab("detail");
+  }
+
+  function setTab(tab) {
+    state.tab = tab;
+    document.querySelectorAll(".tab").forEach(t=>{
+      t.classList.toggle("active", t.dataset.tab === tab);
+    });
+    render();
+  }
+
+  // ---------------------------
+  // Init controls
+  // ---------------------------
+  const scenarioSelect = document.getElementById("scenario");
+  scenarios.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = s.label;
+    scenarioSelect.appendChild(opt);
+  });
+
+  const techSelect = document.getElementById("tech");
+  technicians.forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.textContent = t.name;
+    techSelect.appendChild(opt);
+  });
+
+  scenarioSelect.addEventListener("change", (e)=>{ state.scenarioId = e.target.value; render(); });
+  techSelect.addEventListener("change", (e)=>{ state.technicianId = e.target.value; render(); });
+
+  document.getElementById("refreshBtn").addEventListener("click", ()=>{
+    document.getElementById("lastRefresh").textContent = nowStamp();
+    render();
+  });
+
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.addEventListener("click", ()=> setTab(t.dataset.tab));
+  });
+
+  // first render
+  document.getElementById("lastRefresh").textContent = nowStamp();
+  render();
+</script>
+</body>
+</html>
