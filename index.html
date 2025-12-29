@@ -1,123 +1,236 @@
 <!doctype html>
-<html lang="en">
+<html lang="tr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Spare Parts – Dynamics-like Mock</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>D365-like Logistics Prototype</title>
+
+  <!-- Fluent UI Web Components (pinned stable) -->
+  <script type="module" src="https://unpkg.com/@fluentui/web-components@2.6.1"></script>
+
   <style>
     :root{
-      /* Fluent / Dynamics-ish */
-      --bg:#f5f6f8;
-      --surface:#ffffff;
-      --surface2:#fbfbfc;
-      --text:#1a1a1a;
-      --muted:#606266;
-      --line:#e3e5ea;
-      --accent:#0f6cbd;
-      --accent2:#115ea3;
-      --danger:#c50f1f;
-      --warn:#ffb900;
-      --ok:#107c10;
-      --shadow: 0 1px 2px rgba(0,0,0,.06), 0 10px 24px rgba(0,0,0,.06);
-      --radius: 10px;
-      --font: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      --bg: #f5f6f8;
+      --panel: #ffffff;
+      --border: #e1e3e6;
+      --text: #1b1a19;
+      --muted: #605e5c;
+      --shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.06);
+      --radius: 12px;
+      --topbar-h: 48px;
+      --nav-w: 260px;
+      --accent: #106ebe;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:var(--font);background:var(--bg);color:var(--text)}
-    .shell{display:grid;grid-template-columns:260px 1fr;grid-template-rows:52px 44px 1fr;height:100vh}
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: Segoe UI, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* Shell */
+    .shell{
+      height:100vh;
+      display:grid;
+      grid-template-rows: var(--topbar-h) 1fr;
+    }
+
+    /* Topbar */
     .topbar{
-      grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
-      padding:0 14px;background:var(--surface);border-bottom:1px solid var(--line)
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 0 14px;
+      background: var(--panel);
+      border-bottom:1px solid var(--border);
     }
-    .brand{display:flex;align-items:center;gap:10px;font-weight:600}
-    .badge{width:26px;height:26px;border-radius:6px;background:var(--accent);display:grid;place-items:center;color:#fff}
-    .right{display:flex;align-items:center;gap:10px}
-    .pill{
-      display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;
-      border:1px solid var(--line);background:#fff;font-size:12px;color:var(--muted)
+    .brand{
+      display:flex;
+      align-items:baseline;
+      gap:10px;
     }
-    .dot{width:8px;height:8px;border-radius:50%}
-    .dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--danger)} .dot.na{background:#8b93a8}
-    .pill.ok{border-color:rgba(16,124,16,.25);color:#0b5a0b}
-    .pill.warn{border-color:rgba(255,185,0,.35);color:#6a4b00}
-    .pill.bad{border-color:rgba(197,15,31,.25);color:#8a0d17}
-    .pill.na{border-color:rgba(139,147,168,.35)}
-    .btn{
-      display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);
-      padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px
+    .brand .title{ font-weight: 600; }
+    .brand .subtitle{ color: var(--muted); font-size: 12px; }
+
+    /* Main layout */
+    .main{
+      min-height:0;
+      display:grid;
+      grid-template-columns: var(--nav-w) 1fr;
     }
-    .btn:hover{border-color:#cfd3dd;background:#fafbfd}
-    .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-    .btn.primary:hover{background:var(--accent2);border-color:var(--accent2)}
-    .btn.danger{color:var(--danger);border-color:rgba(197,15,31,.35);background:#fff}
-    .btn.danger:hover{background:rgba(197,15,31,.06)}
-    .btn.ghost{background:transparent}
-    .nav{
-      grid-row:2/-1;background:var(--surface);border-right:1px solid var(--line);padding:10px;overflow:auto
+
+    /* Sidebar */
+    .sidebar{
+      background: var(--panel);
+      border-right:1px solid var(--border);
+      padding: 12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height:0;
     }
-    .nav h4{margin:10px 10px 8px;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-    .nav a{
-      display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;text-decoration:none;
-      color:var(--text);font-size:13px
+    .nav-title{ font-weight: 600; }
+    .nav-section{
+      margin-top: 6px;
+      padding-top: 10px;
+      border-top:1px solid var(--border);
     }
-    .nav a:hover{background:#f1f3f7}
-    .nav a.active{background:rgba(15,108,189,.12);color:var(--accent2);font-weight:600}
-    .commandbar{
-      grid-column:2/-1;display:flex;align-items:center;justify-content:space-between;
-      padding:0 12px;background:var(--surface);border-bottom:1px solid var(--line)
+    .nav-section small{ color: var(--muted); display:block; margin: 0 6px 8px; }
+    .nav-btn{ width:100%; display:flex; justify-content:flex-start; }
+
+    /* Content */
+    .content{
+      padding: 16px;
+      min-height:0;
+      overflow:auto;
     }
-    .crumbs{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
-    .crumbs b{color:var(--text)}
-    .cmds{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-    .content{grid-column:2/-1;padding:14px;overflow:auto}
+    .card{
+      background: var(--panel);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      min-height: calc(100vh - var(--topbar-h) - 32px);
+    }
+
+    /* Common */
+    .row{ display:flex; gap:10px; align-items:center; }
+    .row.wrap{ flex-wrap:wrap; }
+    .space{ flex:1; }
+    .muted{ color: var(--muted); }
+    .h1{ font-size: 18px; font-weight: 650; margin:0; }
+    .h2{ font-size: 14px; font-weight: 650; margin:0; }
+    .divider{ height:1px; background: var(--border); margin: 12px 0; }
+
+    .notice{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius: 10px;
+      padding:10px;
+      margin: 10px 0;
+    }
+    .notice.ok{ border-color:#c7e0c2; background:#f3fff2; }
+    .notice.err{ border-color:#f2b8b5; background:#fff6f5; }
+    .notice.warn{ border-color:#f6d27a; background:#fffbf0; }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 12px;
+      min-height:0;
+    }
+    @media (max-width: 1100px){
+      .main{ grid-template-columns: 1fr; }
+      .sidebar{ display:none; }
+      .grid-2{ grid-template-columns: 1fr; }
+    }
+
     .panel{
-      background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 12px;
+      min-height:0;
     }
-    .panelHeader{
-      padding:12px 14px;border-bottom:1px solid var(--line);
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      background:linear-gradient(#fff,#fcfcfd)
+
+    /* Boxes list */
+    .box-list{ display:flex; flex-direction:column; gap:10px; }
+    .box-item{
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      cursor:pointer;
+      background: #fff;
+      transition: transform .05s ease;
     }
-    .panelHeader h2{margin:0;font-size:15px}
-    .meta{font-size:12px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .toolbar{
-      padding:10px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;
-      align-items:center;justify-content:space-between;background:var(--surface2)
+    .box-item:hover{ transform: translateY(-1px); }
+    .box-item.active{ outline: 2px solid rgba(16,110,190,.25); }
+    .box-top{ display:flex; align-items:center; gap:10px; }
+    .box-meta{ margin-top: 6px; display:flex; gap:10px; flex-wrap:wrap; }
+    .pill{
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background:#fff;
     }
-    .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .input, select{
-      border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--surface);font-size:13px;outline:none
+    .pill.good{ border-color:#c7e0c2; background:#f3fff2; color:#1a5e1a; }
+    .pill.bad{ border-color:#f2b8b5; background:#fff6f5; color:#a4262c; }
+    .pill.warn{ border-color:#f6d27a; background:#fffbf0; color:#8a5a00; }
+
+    /* Items */
+    .items{ display:flex; flex-direction:column; gap:10px; margin-top: 10px; }
+    .item-row{
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background:#fff;
+      display:grid;
+      grid-template-columns: 1.6fr 0.7fr 1.0fr;
+      gap:10px;
+      align-items:start;
     }
-    .input{min-width:240px}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-    th{background:#fafbfd;color:var(--muted);font-weight:600;position:sticky;top:0;z-index:1}
-    tr:hover td{background:#fbfcff}
-    .hint{font-size:12px;color:var(--muted)}
-    .callout{
-      border:1px solid rgba(15,108,189,.25);background:rgba(15,108,189,.06);
-      padding:10px 12px;border-radius:12px;font-size:13px;color:#1b3d6a
+    .item-meta{ display:flex; flex-direction:column; gap:4px; }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      color: var(--muted);
+      width: fit-content;
     }
-    .callout.good{border-color:rgba(16,124,16,.25);background:rgba(16,124,16,.06);color:#0b5a0b}
-    .callout.bad{border-color:rgba(197,15,31,.25);background:rgba(197,15,31,.06);color:#8a0d17}
-    .callout.warn{border-color:rgba(255,185,0,.35);background:rgba(255,185,0,.08);color:#6a4b00}
-    .grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;padding:14px}
-    @media (max-width: 980px){
-      .shell{grid-template-columns:1fr}
-      .nav{display:none}
-      .commandbar,.content{grid-column:1/-1}
-      .grid2{grid-template-columns:1fr}
-      .input{min-width:180px}
+    .tag.wo{ border-color: rgba(16,110,190,.35); color: var(--accent); }
+    .tag.vs{ border-color: rgba(138,90,0,.35); color: #8a5a00; }
+
+    .status-badge{
+      display:inline-flex;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      color: var(--muted);
+      width: fit-content;
     }
-    .section{
-      border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);overflow:hidden
+    .status-badge.recv{ background:#f3fff2; border-color:#c7e0c2; color:#1a5e1a; }
+    .status-badge.miss{ background:#fff6f5; border-color:#f2b8b5; color:#a4262c; }
+    .status-badge.dmg{ background:#fffbf0; border-color:#f6d27a; color:#8a5a00; }
+
+    .file-box{
+      margin-top: 8px;
+      padding: 8px;
+      border:1px dashed var(--border);
+      border-radius: 10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      background:#fff;
     }
-    .sectionHeader{padding:10px 12px;border-bottom:1px solid var(--line);font-weight:600;background:#fafbfd;font-size:13px}
-    .pad{padding:12px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, monospace;font-size:12px;padding:3px 6px;border:1px solid var(--line);border-radius:8px;color:var(--muted);background:#fff}
-    .small{font-size:12px;color:var(--muted)}
-    .checkbox{display:flex;align-items:center;gap:8px}
+
+    .table{
+      width:100%;
+      border-collapse: collapse;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      overflow:hidden;
+    }
+    .table th, .table td{
+      text-align:left;
+      padding:10px;
+      border-bottom:1px solid var(--border);
+      font-size: 13px;
+      vertical-align: top;
+    }
+    .table th{ background:#fafafa; color: var(--muted); font-weight: 600; }
+    .table tr:last-child td{ border-bottom:none; }
+
+    .hidden{ display:none !important; }
   </style>
 </head>
 
@@ -126,580 +239,99 @@
     <!-- Top bar -->
     <div class="topbar">
       <div class="brand">
-        <div class="badge">S</div>
-        <div>Spare Parts Delivery – Mock</div>
+        <div class="title">Field Service</div>
+        <div class="subtitle">Logistics prototype (D365-like)</div>
       </div>
-
-      <div class="right">
-        <span class="pill na"><span class="dot na"></span>UI Simulation</span>
-        <button class="btn" id="loginBtn">Logged in: <b style="margin-left:6px">T-1023</b></button>
-      </div>
-    </div>
-
-    <!-- Left nav -->
-    <aside class="nav">
-      <h4>Technician</h4>
-      <a href="#vanstock" data-page="vanstock" class="active">Van Stock Inventory</a>
-      <a href="#reception" data-page="reception">Delivery Box Reception</a>
-
-      <h4>Notes</h4>
-      <div class="hint" style="padding:0 10px 10px;">
-        This mock helps visualize your BA requirements in Dynamics-like screens.
-      </div>
-    </aside>
-
-    <!-- Command bar -->
-    <div class="commandbar">
-      <div class="crumbs" id="crumbs">
-        <span>Field Service</span> <span>›</span> <b>Van Stock Inventory</b>
-      </div>
-      <div class="cmds" id="cmds">
-        <button class="btn" id="refreshBtn">Refresh</button>
-        <button class="btn ghost" id="helpBtn">What is this?</button>
+      <div class="row">
+        <span class="muted" style="font-size:12px">Technician: T-0042</span>
+        <fluent-button appearance="subtle" id="btnFakeSettings">Settings</fluent-button>
       </div>
     </div>
 
-    <!-- Main content -->
-    <main class="content" id="content"></main>
+    <div class="main">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="nav-title">Navigation</div>
+
+        <div class="nav-section">
+          <small>Logistics</small>
+
+          <fluent-button class="nav-btn" id="navDeliveries" appearance="primary">
+            Delivery Boxes
+          </fluent-button>
+
+          <fluent-button class="nav-btn" id="navVanStock" appearance="subtle">
+            Van Stock Reserved
+          </fluent-button>
+        </div>
+
+        <div class="nav-section">
+          <small>Notes</small>
+          <div class="muted" style="font-size:12px; line-height:1.4; padding: 0 6px;">
+            • Box içindeki parçalar ikiye ayrılır: <b>WO-related</b> ve <b>Van Stock Reserved</b> (WO’suz).<br/>
+            • Damaged seçilirse <b>dosya</b> + <b>not</b> zorunlu.
+          </div>
+        </div>
+      </aside>
+
+      <!-- Content -->
+      <main class="content">
+        <div class="card">
+          <!-- Pages -->
+          <section id="pageDeliveries"></section>
+          <section id="pageVanStock" class="hidden"></section>
+        </div>
+      </main>
+    </div>
   </div>
 
-<script>
-  // -----------------------------------------
-  // CONFIG: simulate "own technician only"
-  // -----------------------------------------
-  const LOGGED_IN_TECH = "T-1023"; // acceptance criteria: only own tech is allowed
-  const TECH_OPTIONS = ["T-1023", "T-2044"]; // to demonstrate denial in mock
-
-  // -----------------------------------------
-  // Mock data (SAP-P4B responses)
-  // -----------------------------------------
-  const vanStockDataByTech = {
-    "T-1023": [
-      { partId:"P-10001", desc:"Standard Filter", qty:3, bucket:"Available", ref:"Default van stock" },
-      { partId:"P-44120", desc:"Pump Assembly", qty:1, bucket:"On Hand", ref:"Delivered today" },
-      { partId:"P-22011", desc:"Seal Kit", qty:2, bucket:"On Hand", ref:"Delivered today" },
-      { partId:"P-33007", desc:"Control Board", qty:1, bucket:"Allocated", ref:"WO-100012 (2nd visit)" },
-      { partId:"P-90009", desc:"Hose Set", qty:1, bucket:"On Order", ref:"ETA 2026-01-14" },
-    ],
-    "T-2044": [
-      { partId:"P-77777", desc:"Motor Unit", qty:1, bucket:"On Hand", ref:"Delivered today" },
-    ]
-  };
-
-  // Delivery boxes (warehouse shipment note mock)
-  const deliveryBoxes = {
-    "BX-7781": {
-      boxId:"BX-7781",
-      technician:"T-1023",
-      shippedAt:"2026-01-10 16:40",
-      woId:"WO-100045",
-      items:[
-        { partId:"P-44120", desc:"Pump Assembly", qty:1, lineStatus:"Shipped" },
-        { partId:"P-22011", desc:"Seal Kit", qty:2, lineStatus:"Shipped" },
+  <script>
+    // ----------------------------
+    // Mock Data (edit freely)
+    // ----------------------------
+    const MOCK = {
+      boxes: [
+        {
+          boxId: "BX-102938",
+          shipDate: "2025-12-28T10:30:00Z",
+          items: [
+            // WO-related
+            { id:"i1", partId:"P-100012", desc:"Thermostat assembly", qty:1, woId:"WO-450012", status:"Pending", note:"", fileName:"" },
+            { id:"i2", partId:"P-100201", desc:"Water inlet valve", qty:2, woId:"WO-450012", status:"Pending", note:"", fileName:"" },
+            // Van Stock Reserved (WO-unassigned)
+            { id:"i3", partId:"P-100311", desc:"Door seal gasket", qty:1, woId:null, status:"Pending", note:"", fileName:"" }
+          ]
+        },
+        {
+          boxId: "BX-774401",
+          shipDate: "2025-12-27T15:05:00Z",
+          items: [
+            // WO-related
+            { id:"i4", partId:"P-101010", desc:"Control board", qty:1, woId:"WO-450099", status:"Pending", note:"", fileName:"" },
+            // Van Stock Reserved
+            { id:"i5", partId:"P-100777", desc:"Hose kit", qty:1, woId:null, status:"Pending", note:"", fileName:"" }
+          ]
+        }
+      ],
+      vanStockReserved: [
+        { partId:"P-100311", desc:"Door seal gasket", qtyReserved: 1, lastUpdated:"2025-12-29T08:15:00Z" },
+        { partId:"P-100777", desc:"Hose kit", qtyReserved: 2, lastUpdated:"2025-12-29T08:15:00Z" }
       ]
-    },
-    "BX-9900": {
-      boxId:"BX-9900",
-      technician:"T-1023",
-      shippedAt:"2026-01-11 09:10",
-      woId:"WO-100046",
-      items:[
-        { partId:"P-90009", desc:"Hose Set", qty:1, lineStatus:"Shipped" }
-      ]
-    }
-  };
+    };
 
-  // Reception state (in-memory for demo)
-  const receptionState = {}; // key: boxId -> {status, reason, damagedFlags[], attachments[]}
+    // ----------------------------
+    // State
+    // ----------------------------
+    const state = {
+      route: "deliveries", // deliveries | vanstock
+      boxIdInput: "",
+      selectedBoxId: null,
+      workingBox: null, // deep copy of selected box for editing
+      message: null // { type: "ok"|"err"|"warn", text: string }
+    };
 
-  // -----------------------------------------
-  // App state
-  // -----------------------------------------
-  const state = {
-    page: "vanstock",
-    requestedTech: LOGGED_IN_TECH, // in real system, this would always equal logged-in
-    lastUpdated: new Date(),
-    vanSearch: "",
-    vanBucket: "All",
-    selectedBox: null,
-  };
-
-  // -----------------------------------------
-  // Utilities
-  // -----------------------------------------
-  const $ = (sel) => document.querySelector(sel);
-  const fmtTs = (d) => {
-    const pad = (n)=> String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  };
-
-  function pillBucket(bucket){
-    if(bucket==="On Hand") return `<span class="pill ok"><span class="dot ok"></span>${bucket}</span>`;
-    if(bucket==="On Order") return `<span class="pill warn"><span class="dot warn"></span>${bucket}</span>`;
-    if(bucket==="Allocated") return `<span class="pill warn"><span class="dot warn"></span>${bucket}</span>`;
-    if(bucket==="Available") return `<span class="pill na"><span class="dot na"></span>${bucket}</span>`;
-    return `<span class="pill na"><span class="dot na"></span>${bucket}</span>`;
-  }
-
-  function setActiveNav(){
-    document.querySelectorAll(".nav a[data-page]").forEach(a=>{
-      a.classList.toggle("active", a.dataset.page === state.page);
-    });
-  }
-
-  function setCrumbs(){
-    const name = state.page === "vanstock" ? "Van Stock Inventory" : "Delivery Box Reception";
-    $("#crumbs").innerHTML = `<span>Field Service</span> <span>›</span> <b>${name}</b>`;
-  }
-
-  function isOwnAccessAllowed(){
-    // enforce AC1: only own technician
-    return state.requestedTech === LOGGED_IN_TECH;
-  }
-
-  // -----------------------------------------
-  // Renderers
-  // -----------------------------------------
-  function render(){
-    setActiveNav();
-    setCrumbs();
-
-    if(state.page === "vanstock"){
-      $("#content").innerHTML = renderVanStockPage();
-      bindVanStockPage();
-      return;
-    }
-    $("#content").innerHTML = renderReceptionPage();
-    bindReceptionPage();
-  }
-
-  // ---- VAN STOCK PAGE ----
-  function renderVanStockPage(){
-    const allowed = isOwnAccessAllowed();
-    const last = fmtTs(state.lastUpdated);
-
-    const headerMeta = `
-      <div class="meta">
-        <span>Technician:</span> <span class="kbd">${state.requestedTech}</span>
-        <span>Last updated:</span> <span class="kbd">${last}</span>
-        <span class="hint">Source: SAP-P4B (mock)</span>
-      </div>
-    `;
-
-    if(!allowed){
-      return `
-        <div class="panel">
-          <div class="panelHeader">
-            <h2>Van Stock Inventory</h2>
-            ${headerMeta}
-          </div>
-          <div class="pad">
-            <div class="callout bad">
-              <b>Access denied.</b> Van stock is restricted to the logged-in technician only.
-              <div class="small" style="margin-top:6px;">(This simulates AC1: Own technician access only.)</div>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    const all = vanStockDataByTech[state.requestedTech] || [];
-    const filtered = all
-      .filter(x => state.vanBucket === "All" ? true : x.bucket === state.vanBucket)
-      .filter(x => (x.partId + " " + x.desc).toLowerCase().includes(state.vanSearch.toLowerCase()));
-
-    const rows = filtered.map(x => `
-      <tr>
-        <td>${x.partId}</td>
-        <td>${x.desc}</td>
-        <td>${x.qty}</td>
-        <td>${pillBucket(x.bucket)}</td>
-        <td class="hint">${x.ref || "—"}</td>
-      </tr>
-    `).join("");
-
-    return `
-      <div class="panel">
-        <div class="panelHeader">
-          <h2>Van Stock Inventory</h2>
-          ${headerMeta}
-        </div>
-
-        <div class="toolbar">
-          <div class="filters">
-            <input id="vanSearch" class="input" placeholder="Search Part ID / Description…" value="${escapeHtml(state.vanSearch)}"/>
-            <select id="vanBucket">
-              ${["All","Available","On Hand","Allocated","On Order"].map(b => `<option ${b===state.vanBucket?"selected":""}>${b}</option>`).join("")}
-            </select>
-          </div>
-          <div class="hint">
-            Minimum fields (AC2): Part ID • Description • Quantity • Status • Last updated
-          </div>
-        </div>
-
-        <div style="overflow:auto; max-height: calc(100vh - 220px);">
-          <table>
-            <thead>
-              <tr>
-                <th>Part ID</th>
-                <th>Description</th>
-                <th>Quantity</th>
-                <th>Status</th>
-                <th>Reference</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows || `<tr><td colspan="5" class="hint">No items match your filters.</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    `;
-  }
-
-  function bindVanStockPage(){
-    const search = $("#vanSearch");
-    const bucket = $("#vanBucket");
-    if(search){
-      search.addEventListener("input", (e)=>{ state.vanSearch = e.target.value; render(); });
-    }
-    if(bucket){
-      bucket.addEventListener("change", (e)=>{ state.vanBucket = e.target.value; render(); });
-    }
-  }
-
-  // ---- RECEPTION PAGE ----
-  function renderReceptionPage(){
-    const allowed = isOwnAccessAllowed();
-
-    const rightPanel = `
-      <div class="section">
-        <div class="sectionHeader">How to demo</div>
-        <div class="pad">
-          <div class="hint">
-            1) Enter a Box ID (e.g. <b>BX-7781</b>)<br/>
-            2) View items inside the box<br/>
-            3) Perform <b>Reception</b>: Received / Not Received<br/>
-            4) If any item is marked <b>Damaged</b>, add attachment(s)
-          </div>
-          <div style="margin-top:10px" class="callout">
-            <b>User view:</b> Technician confirms what arrived in the van.<br/>
-            <span class="hint">System view:</span> Receipt event would be written back (TBD) and stored for audit.
-          </div>
-        </div>
-      </div>
-    `;
-
-    const header = `
-      <div class="panelHeader">
-        <h2>Delivery Box Reception</h2>
-        <div class="meta">
-          <span>Technician:</span> <span class="kbd">${state.requestedTech}</span>
-          <span class="hint">Box lookup (mock shipment note)</span>
-        </div>
-      </div>
-    `;
-
-    if(!allowed){
-      return `
-        <div class="panel">
-          ${header}
-          <div class="pad">
-            <div class="callout bad">
-              <b>Access denied.</b> Reception is restricted to the logged-in technician only.
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    const selected = state.selectedBox ? deliveryBoxes[state.selectedBox] : null;
-    const receipt = (selected && receptionState[selected.boxId]) ? receptionState[selected.boxId] : null;
-
-    const statusCallout = !selected ? "" : renderReceiptCallout(receipt);
-
-    const itemTable = !selected ? `
-      <div class="callout warn">
-        Enter a <b>Box ID</b> to load the content.
-      </div>
-    ` : `
-      <div class="section" style="margin-top:14px;">
-        <div class="sectionHeader">Box Details</div>
-        <div class="pad">
-          <div class="row">
-            <div class="pill na"><span class="dot na"></span>Box ID: <b>${selected.boxId}</b></div>
-            <div class="pill na"><span class="dot na"></span>WO: <b>${selected.woId}</b></div>
-            <div class="pill na"><span class="dot na"></span>Shipped at: <b>${selected.shippedAt}</b></div>
-          </div>
-          <div style="margin-top:10px" class="hint">Mark damaged items if needed. Attachments are required for damaged items.</div>
-        </div>
-
-        <div style="overflow:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Part ID</th><th>Description</th><th>Qty</th><th>Line Status</th><th>Damaged</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${selected.items.map((it, idx)=>`
-                <tr>
-                  <td>${it.partId}</td>
-                  <td>${it.desc}</td>
-                  <td>${it.qty}</td>
-                  <td>${pillForLine(it.lineStatus)}</td>
-                  <td>
-                    <label class="checkbox">
-                      <input type="checkbox" data-dmg="${idx}" ${isDamagedChecked(selected.boxId, idx) ? "checked": ""}/>
-                      <span class="hint">Damaged</span>
-                    </label>
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="section" style="margin-top:14px;">
-        <div class="sectionHeader">Reception Activity</div>
-        <div class="pad">
-          ${statusCallout}
-
-          <div class="row" style="margin-top:10px;">
-            <button class="btn primary" id="btnReceived">Confirm Received</button>
-            <button class="btn" id="btnNotReceived">Mark Not Received</button>
-          </div>
-
-          <div style="margin-top:12px" class="divider"></div>
-
-          <div class="hint"><b>Attachments</b> (required if any item is damaged)</div>
-          <div class="row" style="margin-top:8px;">
-            <input id="fileInput" type="file" multiple />
-            <button class="btn" id="btnAddFiles">Add attachment(s)</button>
-          </div>
-
-          <div style="margin-top:10px;">
-            <div class="hint">Saved attachments (mock list):</div>
-            <ul class="hint" id="attList">
-              ${(receipt?.attachments?.length ? receipt.attachments : []).map(a=>`<li>${escapeHtml(a)}</li>`).join("") || "<li>No attachments</li>"}
-            </ul>
-          </div>
-
-          <div class="small">
-            Note: In real implementation, files would be uploaded to the chosen storage and linked to the receipt event.
-          </div>
-        </div>
-      </div>
-    `;
-
-    return `
-      <div class="panel">
-        ${header}
-        <div class="grid2">
-          <div>
-            <div class="section">
-              <div class="sectionHeader">Lookup Delivery Box</div>
-              <div class="pad">
-                <div class="row">
-                  <input id="boxInput" class="input" placeholder="Enter Box ID (e.g., BX-7781)" value="${escapeHtml(state.selectedBox || "")}" />
-                  <button class="btn primary" id="boxSearchBtn">Search</button>
-                  <button class="btn" id="boxClearBtn">Clear</button>
-                </div>
-                <div class="hint" style="margin-top:8px;">
-                  Example Box IDs in this mock: <span class="kbd">BX-7781</span>, <span class="kbd">BX-9900</span>
-                </div>
-              </div>
-            </div>
-
-            ${itemTable}
-          </div>
-
-          <div>
-            ${rightPanel}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderReceiptCallout(receipt){
-    if(!receipt || receipt.status === "Pending"){
-      return `<div class="callout">Receipt status: <b>Pending</b></div>`;
-    }
-    if(receipt.status === "Received"){
-      const dmg = receipt.damagedFlags?.some(Boolean) ? " (Damaged items reported)" : "";
-      return `<div class="callout good">Receipt status: <b>Received</b>${dmg}</div>`;
-    }
-    if(receipt.status === "Not Received"){
-      return `<div class="callout bad">Receipt status: <b>Not Received</b> • Reason: <b>${escapeHtml(receipt.reason || "—")}</b></div>`;
-    }
-    return `<div class="callout">Receipt status: <b>${escapeHtml(receipt.status)}</b></div>`;
-  }
-
-  function pillForLine(status){
-    if(status==="Shipped") return `<span class="pill warn"><span class="dot warn"></span>Shipped</span>`;
-    if(status==="Received") return `<span class="pill ok"><span class="dot ok"></span>Received</span>`;
-    return `<span class="pill na"><span class="dot na"></span>${escapeHtml(status||"—")}</span>`;
-  }
-
-  function isDamagedChecked(boxId, idx){
-    const r = receptionState[boxId];
-    return !!(r && r.damagedFlags && r.damagedFlags[idx]);
-  }
-
-  function bindReceptionPage(){
-    const boxInput = $("#boxInput");
-    const searchBtn = $("#boxSearchBtn");
-    const clearBtn = $("#boxClearBtn");
-
-    if(searchBtn){
-      searchBtn.addEventListener("click", ()=>{
-        const value = (boxInput.value || "").trim();
-        if(!value){ alert("Please enter a Box ID."); return; }
-        if(!deliveryBoxes[value]){
-          alert("Box ID not found in mock dataset.");
-          state.selectedBox = null;
-          render();
-          return;
-        }
-        // Ensure box belongs to own technician (realistic constraint)
-        const bx = deliveryBoxes[value];
-        if(bx.technician !== LOGGED_IN_TECH){
-          alert("This box does not belong to the logged-in technician.");
-          state.selectedBox = null;
-          render();
-          return;
-        }
-        state.selectedBox = value;
-        confirmReceptionState(value);
-        render();
-      });
-    }
-
-    if(clearBtn){
-      clearBtn.addEventListener("click", ()=>{
-        state.selectedBox = null;
-        render();
-      });
-    }
-
-    // Damaged checkboxes + actions exist only when a box is loaded
-    const selected = state.selectedBox ? deliveryBoxes[state.selectedBox] : null;
-    if(!selected) return;
-
-    // bind damaged toggles
-    document.querySelectorAll("input[type=checkbox][data-dmg]").forEach(cb=>{
-      cb.addEventListener("change", ()=>{
-        const idx = Number(cb.dataset.dmg);
-        const rs = confirmReceptionState(selected.boxId);
-        rs.damagedFlags[idx] = cb.checked;
-      });
-    });
-
-    // attachments
-    const addFilesBtn = $("#btnAddFiles");
-    if(addFilesBtn){
-      addFilesBtn.addEventListener("click", ()=>{
-        const input = $("#fileInput");
-        if(!input || !input.files || input.files.length === 0){
-          alert("Select one or more files first.");
-          return;
-        }
-        const rs = confirmReceptionState(selected.boxId);
-        Array.from(input.files).forEach(f => rs.attachments.push(f.name));
-        input.value = "";
-        render();
-      });
-    }
-
-    // reception actions
-    const btnReceived = $("#btnReceived");
-    const btnNotReceived = $("#btnNotReceived");
-
-    if(btnReceived){
-      btnReceived.addEventListener("click", ()=>{
-        const rs = confirmReceptionState(selected.boxId);
-
-        const anyDamaged = rs.damagedFlags.some(Boolean);
-        if(anyDamaged && rs.attachments.length === 0){
-          alert("Attachments are required when any item is marked as Damaged.");
-          return;
-        }
-
-        rs.status = "Received";
-        rs.reason = null;
-
-        // update line status in mock
-        selected.items.forEach(it => it.lineStatus = "Received");
-        render();
-      });
-    }
-
-    if(btnNotReceived){
-      btnNotReceived.addEventListener("click", ()=>{
-        const reason = prompt("Reason (e.g., Missing items / Box not delivered / Damaged):", "Missing items");
-        const rs = confirmReceptionState(selected.boxId);
-        rs.status = "Not Received";
-        rs.reason = reason || "Not received";
-        render();
-      });
-    }
-  }
-
-  function confirmReceptionState(boxId){
-    if(!receptionState[boxId]){
-      const box = deliveryBoxes[boxId];
-      receptionState[boxId] = {
-        status: "Pending",
-        reason: null,
-        damagedFlags: new Array(box.items.length).fill(false),
-        attachments: []
-      };
-    }
-    return receptionState[boxId];
-  }
-
-  // -----------------------------------------
-  // Global controls (command bar + login sim)
-  // -----------------------------------------
-  $("#refreshBtn").addEventListener("click", ()=>{
-    // AC4 manual refresh
-    state.lastUpdated = new Date();
-    render();
-  });
-
-  $("#helpBtn").addEventListener("click", ()=>{
-    alert("This is a Dynamics-like UI mock for BA visualization.\n\nVan Stock: own technician only + minimum fields + status buckets + refresh.\nReception: enter Box ID → view items → confirm receipt (with attachments for damaged).");
-  });
-
-  $("#loginBtn").addEventListener("click", ()=>{
-    // demo-only: let you switch requested tech to show access denied
-    const next = state.requestedTech === TECH_OPTIONS[0] ? TECH_OPTIONS[1] : TECH_OPTIONS[0];
-    state.requestedTech = next;
-    render();
-  });
-
-  function escapeHtml(s){
-    return String(s ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  // -----------------------------------------
-  // Routing
-  // -----------------------------------------
-  function routeFromHash(){
-    const h = (location.hash || "#vanstock").replace("#","");
-    state.page = (h === "reception") ? "reception" : "vanstock";
-    render();
-  }
-
-  window.addEventListener("hashchange", routeFromHash);
-  routeFromHash();
-</script>
-</body>
-</html>
+    // ----------------------------
+    // Utilities
+    // ----------------------------
+    const $ = (sel) => document.querySelector(sel);
+    const escapeHtml = (s) => (s ?? "").toStrin
