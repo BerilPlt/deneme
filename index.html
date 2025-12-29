@@ -334,4 +334,473 @@
     // Utilities
     // ----------------------------
     const $ = (sel) => document.querySelector(sel);
-    const escapeHtml = (s) => (s ?? "").toStrin
+    const escapeHtml = (s) => (s ?? "").toString().replace(/[&<>"']/g, (m) =>
+      ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[m])
+    );
+
+    function formatDate(iso){
+      try{
+        const d = new Date(iso);
+        return d.toLocaleString(undefined, { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+      }catch{ return iso; }
+    }
+
+    function boxStatus(box){
+      const items = box.items || [];
+      const done = items.filter(x => x.status !== "Pending").length;
+      const anyIssue = items.some(x => x.status === "Missing" || x.status === "Damaged");
+      if (done === 0) return { key:"Inbound", cls:"pill", label:"Inbound" };
+      if (done < items.length) return { key:"Partial", cls:"pill warn", label:`Partially confirmed (${done}/${items.length})` };
+      if (anyIssue) return { key:"Issue", cls:"pill bad", label:"Issue" };
+      return { key:"Confirmed", cls:"pill good", label:"Confirmed" };
+    }
+
+    function itemBadge(status){
+      if (status === "Received") return `<span class="status-badge recv">Received</span>`;
+      if (status === "Missing") return `<span class="status-badge miss">Missing</span>`;
+      if (status === "Damaged") return `<span class="status-badge dmg">Damaged</span>`;
+      return `<span class="status-badge">Pending</span>`;
+    }
+
+    function getSelectedBox(){
+      if (!state.selectedBoxId) return null;
+      const original = MOCK.boxes.find(b => b.boxId === state.selectedBoxId);
+      return original || null;
+    }
+
+    function deepCopy(obj){
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function setMessage(type, text){
+      state.message = { type, text };
+      render();
+    }
+
+    function clearMessage(){
+      state.message = null;
+      render();
+    }
+
+    // ----------------------------
+    // Navigation
+    // ----------------------------
+    function setRoute(route){
+      state.route = route;
+      if (route === "deliveries") {
+        $("#navDeliveries").setAttribute("appearance","primary");
+        $("#navVanStock").setAttribute("appearance","subtle");
+        $("#pageDeliveries").classList.remove("hidden");
+        $("#pageVanStock").classList.add("hidden");
+      } else {
+        $("#navDeliveries").setAttribute("appearance","subtle");
+        $("#navVanStock").setAttribute("appearance","primary");
+        $("#pageDeliveries").classList.add("hidden");
+        $("#pageVanStock").classList.remove("hidden");
+      }
+      render();
+    }
+
+    // ----------------------------
+    // Actions
+    // ----------------------------
+    function findBoxById(boxId){
+      clearMessage();
+      const found = MOCK.boxes.find(b => b.boxId.toLowerCase() === (boxId||"").trim().toLowerCase());
+      if (!found){
+        state.selectedBoxId = null;
+        state.workingBox = null;
+        setMessage("err", "Box ID not found. Please check and try again.");
+        return;
+      }
+      state.selectedBoxId = found.boxId;
+      state.workingBox = deepCopy(found); // edit copy
+      state.boxIdInput = found.boxId;
+      render();
+    }
+
+    function selectBox(boxId){
+      findBoxById(boxId);
+    }
+
+    function updateItem(itemId, patch){
+      if (!state.workingBox) return;
+      state.workingBox.items = state.workingBox.items.map(it => it.id === itemId ? { ...it, ...patch } : it);
+      render(); // simple rerender
+    }
+
+    function validateBoxBeforeSubmit(){
+      if (!state.workingBox) return "No box selected.";
+      const items = state.workingBox.items || [];
+      const pending = items.filter(i => i.status === "Pending");
+      if (pending.length) return "Please confirm all items (no Pending items allowed).";
+      const damagedNoFile = items.filter(i => i.status === "Damaged" && !i.fileName);
+      if (damagedNoFile.length) return "For Damaged items, file upload is required.";
+      const damagedNoNote = items.filter(i => i.status === "Damaged" && !(i.note||"").trim());
+      if (damagedNoNote.length) return "For Damaged items, a short note is required.";
+      return null;
+    }
+
+    function upsertVanStockReserved(partId, desc, deltaQty){
+      const nowIso = new Date().toISOString();
+      const row = MOCK.vanStockReserved.find(r => r.partId === partId);
+      if (row){
+        row.qtyReserved += deltaQty;
+        row.lastUpdated = nowIso;
+      } else {
+        MOCK.vanStockReserved.push({ partId, desc, qtyReserved: deltaQty, lastUpdated: nowIso });
+      }
+    }
+
+    function submitBoxConfirmation(){
+      clearMessage();
+      const err = validateBoxBeforeSubmit();
+      if (err){
+        setMessage("err", err);
+        return;
+      }
+
+      // Apply changes back to original mock (simulate persistence)
+      const originalIndex = MOCK.boxes.findIndex(b => b.boxId === state.workingBox.boxId);
+      if (originalIndex >= 0){
+        MOCK.boxes[originalIndex] = deepCopy(state.workingBox);
+      }
+
+      // Business rule for prototype:
+      // - If item is Van Stock Reserved (WO-unassigned) AND status is Received -> increase Van Stock Reserved qty
+      const reservedReceived = state.workingBox.items.filter(i => !i.woId && i.status === "Received");
+      reservedReceived.forEach(i => upsertVanStockReserved(i.partId, i.desc, i.qty));
+
+      // Summaries
+      const items = state.workingBox.items;
+      const received = items.filter(i => i.status === "Received").length;
+      const missing = items.filter(i => i.status === "Missing").length;
+      const damaged = items.filter(i => i.status === "Damaged").length;
+
+      setMessage("ok", `Submitted. Received: ${received}, Missing: ${missing}, Damaged: ${damaged}.`);
+    }
+
+    function resetSelection(){
+      state.boxIdInput = "";
+      state.selectedBoxId = null;
+      state.workingBox = null;
+      clearMessage();
+    }
+
+    // ----------------------------
+    // Rendering
+    // ----------------------------
+    function renderMessage(){
+      if (!state.message) return "";
+      const cls = state.message.type === "ok" ? "notice ok" : state.message.type === "warn" ? "notice warn" : "notice err";
+      return `<div class="${cls}">
+        <div class="row">
+          <div><b>${escapeHtml(state.message.type.toUpperCase())}</b> — ${escapeHtml(state.message.text)}</div>
+          <div class="space"></div>
+          <fluent-button appearance="subtle" id="btnDismissMsg">Dismiss</fluent-button>
+        </div>
+      </div>`;
+    }
+
+    function renderItemRow(item){
+      const kindTag = item.woId
+        ? `<span class="tag wo">WO-related • ${escapeHtml(item.woId)}</span>`
+        : `<span class="tag vs">Van Stock Reserved • WO-unassigned</span>`;
+
+      const fileBlock = (item.status === "Damaged") ? `
+        <div class="file-box">
+          <div class="muted" style="font-size:12px">
+            Damaged selected → file + note required
+          </div>
+          <input type="file" data-file-for="${escapeHtml(item.id)}" />
+          <fluent-text-area
+            data-note-for="${escapeHtml(item.id)}"
+            placeholder="Damage note (required)"
+            value="${escapeHtml(item.note||"")}"
+            resize="vertical"
+            style="width:100%"
+          ></fluent-text-area>
+          <div class="muted" style="font-size:12px">
+            Selected file: <b>${escapeHtml(item.fileName || "—")}</b>
+          </div>
+        </div>
+      ` : "";
+
+      return `
+        <div class="item-row">
+          <div class="item-meta">
+            <div><b>${escapeHtml(item.partId)}</b> — ${escapeHtml(item.desc)}</div>
+            <div class="row wrap" style="gap:8px">
+              ${kindTag}
+              ${itemBadge(item.status)}
+            </div>
+            ${fileBlock}
+          </div>
+
+          <div>
+            <div class="muted" style="font-size:12px">Quantity</div>
+            <div style="font-size:14px; font-weight:650">${escapeHtml(item.qty)}</div>
+          </div>
+
+          <div>
+            <div class="muted" style="font-size:12px">Confirmation</div>
+            <fluent-select data-status-for="${escapeHtml(item.id)}" style="width:100%">
+              <fluent-option value="Pending" ${item.status==="Pending"?"selected":""}>Pending</fluent-option>
+              <fluent-option value="Received" ${item.status==="Received"?"selected":""}>Received</fluent-option>
+              <fluent-option value="Missing" ${item.status==="Missing"?"selected":""}>Missing</fluent-option>
+              <fluent-option value="Damaged" ${item.status==="Damaged"?"selected":""}>Damaged</fluent-option>
+            </fluent-select>
+            <div class="muted" style="font-size:12px; margin-top:8px">
+              Tip: “Damaged” → file + note required.
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDeliveriesPage(){
+      const container = $("#pageDeliveries");
+      const boxes = MOCK.boxes;
+      const selectedBox = state.workingBox;
+
+      // Left: search + recent boxes
+      const boxListHtml = boxes.map(b => {
+        const st = boxStatus(b);
+        const isActive = (state.selectedBoxId === b.boxId);
+        const counts = {
+          wo: (b.items||[]).filter(x => !!x.woId).length,
+          vs: (b.items||[]).filter(x => !x.woId).length,
+          total: (b.items||[]).length
+        };
+        return `
+          <div class="box-item ${isActive ? "active":""}" data-box="${escapeHtml(b.boxId)}">
+            <div class="box-top">
+              <div style="font-weight:650">${escapeHtml(b.boxId)}</div>
+              <div class="space"></div>
+              <span class="${st.cls}">${escapeHtml(st.label)}</span>
+            </div>
+            <div class="box-meta">
+              <span class="pill">Ship: ${escapeHtml(formatDate(b.shipDate))}</span>
+              <span class="pill">Items: ${counts.total}</span>
+              <span class="pill">WO: ${counts.wo}</span>
+              <span class="pill">Van Stock Reserved: ${counts.vs}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // Right: details
+      let detailsHtml = `
+        <div class="panel">
+          <div class="muted">Select a box to start. You can type a Box ID and click “Find box”.</div>
+        </div>
+      `;
+
+      if (selectedBox){
+        const items = selectedBox.items || [];
+        const woItems = items.filter(x => !!x.woId);
+        const vsItems = items.filter(x => !x.woId);
+
+        const done = items.filter(x => x.status !== "Pending").length;
+        const total = items.length;
+        const anyIssue = items.some(x => x.status === "Missing" || x.status === "Damaged");
+        const st = boxStatus(selectedBox);
+
+        const woList = woItems.length
+          ? woItems.map(renderItemRow).join("")
+          : `<div class="notice warn">No WO-related items in this box.</div>`;
+
+        const vsList = vsItems.length
+          ? vsItems.map(renderItemRow).join("")
+          : `<div class="notice warn">No Van Stock Reserved items in this box.</div>`;
+
+        detailsHtml = `
+          <div class="panel">
+            <div class="row wrap">
+              <div>
+                <div class="h2">Box details</div>
+                <div class="muted" style="font-size:12px">Box ID: <b>${escapeHtml(selectedBox.boxId)}</b> • Ship: ${escapeHtml(formatDate(selectedBox.shipDate))}</div>
+              </div>
+              <div class="space"></div>
+              <span class="${st.cls}">${escapeHtml(st.label)}</span>
+              <span class="pill">Progress: ${done}/${total}</span>
+              ${anyIssue ? `<span class="pill bad">Issue detected</span>` : ``}
+            </div>
+
+            ${renderMessage()}
+
+            <fluent-tabs activeid="woTab" id="boxTabs" style="margin-top:10px">
+              <fluent-tab id="woTab">Work Order related (${woItems.length})</fluent-tab>
+              <fluent-tab id="vsTab">Van Stock Reserved (${vsItems.length})</fluent-tab>
+
+              <fluent-tab-panel id="woTabPanel">
+                <div class="items">${woList}</div>
+              </fluent-tab-panel>
+
+              <fluent-tab-panel id="vsTabPanel">
+                <div class="items">${vsList}</div>
+              </fluent-tab-panel>
+            </fluent-tabs>
+
+            <div class="divider"></div>
+
+            <div class="row wrap" style="justify-content:flex-end">
+              <fluent-button appearance="subtle" id="btnResetBox">Reset</fluent-button>
+              <fluent-button appearance="primary" id="btnSubmitBox">Submit confirmation</fluent-button>
+            </div>
+
+            <div class="muted" style="font-size:12px; margin-top:10px">
+              Note: Van Stock Reserved items are <b>not linked to any Work Order</b>.
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div class="row wrap" style="margin-bottom:10px">
+          <h1 class="h1">Delivery Boxes</h1>
+          <div class="space"></div>
+          <fluent-button appearance="subtle" id="btnClearMsg">Clear message</fluent-button>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <div class="h2">Confirm Delivery Box</div>
+            <div class="muted" style="font-size:12px; margin-top:4px">Enter a Box ID to load its contents.</div>
+
+            <div class="row" style="margin-top:10px">
+              <fluent-text-field
+                id="boxIdInput"
+                placeholder="e.g., BX-102938"
+                value="${escapeHtml(state.boxIdInput)}"
+                style="width:100%"
+              ></fluent-text-field>
+              <fluent-button appearance="primary" id="btnFindBox">Find box</fluent-button>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="row wrap">
+              <div class="h2">Recent boxes</div>
+              <div class="space"></div>
+              <span class="muted" style="font-size:12px">${boxes.length} box(es)</span>
+            </div>
+
+            <div class="box-list" id="boxList" style="margin-top:10px">
+              ${boxListHtml || `<div class="muted">No boxes.</div>`}
+            </div>
+          </div>
+
+          ${detailsHtml}
+        </div>
+      `;
+
+      // Wire events
+      const input = $("#boxIdInput");
+      input?.addEventListener("input", (e) => {
+        state.boxIdInput = e.target.value || "";
+      });
+
+      $("#btnFindBox")?.addEventListener("click", () => findBoxById(state.boxIdInput));
+      $("#btnClearMsg")?.addEventListener("click", clearMessage);
+
+      $("#boxList")?.querySelectorAll("[data-box]")?.forEach(el => {
+        el.addEventListener("click", () => selectBox(el.getAttribute("data-box")));
+      });
+
+      $("#btnDismissMsg")?.addEventListener("click", clearMessage);
+      $("#btnResetBox")?.addEventListener("click", resetSelection);
+      $("#btnSubmitBox")?.addEventListener("click", submitBoxConfirmation);
+
+      // Item status changes
+      container.querySelectorAll("[data-status-for]")?.forEach(sel => {
+        sel.addEventListener("change", (e) => {
+          const itemId = e.currentTarget.getAttribute("data-status-for");
+          const value = e.currentTarget.value;
+          // If leaving Damaged, clear file/note optionally
+          if (value !== "Damaged") {
+            updateItem(itemId, { status: value, fileName: "", note: "" });
+          } else {
+            updateItem(itemId, { status: value });
+          }
+        });
+      });
+
+      // File changes
+      container.querySelectorAll("input[type='file'][data-file-for]")?.forEach(inp => {
+        inp.addEventListener("change", (e) => {
+          const itemId = e.currentTarget.getAttribute("data-file-for");
+          const file = e.currentTarget.files && e.currentTarget.files[0];
+          updateItem(itemId, { fileName: file ? file.name : "" });
+        });
+      });
+
+      // Note changes
+      container.querySelectorAll("[data-note-for]")?.forEach(ta => {
+        ta.addEventListener("input", (e) => {
+          const itemId = e.currentTarget.getAttribute("data-note-for");
+          const value = e.currentTarget.value || "";
+          updateItem(itemId, { note: value });
+        });
+      });
+    }
+
+    function renderVanStockPage(){
+      const container = $("#pageVanStock");
+      const rows = MOCK.vanStockReserved;
+
+      container.innerHTML = `
+        <div class="row wrap" style="margin-bottom:10px">
+          <h1 class="h1">Van Stock Reserved</h1>
+          <div class="space"></div>
+          <span class="muted" style="font-size:12px">WO link: none</span>
+        </div>
+
+        <div class="panel">
+          <div class="row wrap">
+            <div>
+              <div class="h2">My Reserved Inventory</div>
+              <div class="muted" style="font-size:12px">This page shows reserved quantities only (not linked to any Work Order).</div>
+            </div>
+            <div class="space"></div>
+            <span class="pill">Last refresh: ${escapeHtml(new Date().toLocaleString())}</span>
+          </div>
+
+          <div class="divider"></div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width:180px">Part ID</th>
+                <th>Description</th>
+                <th style="width:160px">Reserved Qty</th>
+                <th style="width:220px">Last updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr>
+                  <td><b>${escapeHtml(r.partId)}</b></td>
+                  <td>${escapeHtml(r.desc)}</td>
+                  <td>${escapeHtml(r.qtyReserved)}</td>
+                  <td class="muted">${escapeHtml(formatDate(r.lastUpdated))}</td>
+                </tr>
+              `).join("") || `<tr><td colspan="4" class="muted">No data.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function render(){
+      if (state.route === "deliveries") renderDeliveriesPage();
+      if (state.route === "vanstock") renderVanStockPage();
+    }
+
+    // Init
+    $("#navDeliveries").addEventListener("click", () => setRoute("deliveries"));
+    $("#navVanStock").addEventListener("click", () => setRoute("vanstock"));
+    render();
+  </script>
+</body>
+</html>
