@@ -1,735 +1,612 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Field Service</title>
-
-  <!-- Fluent UI Web Components -->
-  <script type="module" src="https://unpkg.com/@fluentui/web-components@2.6.1"></script>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Technician Van Stock - Mockup</title>
   <style>
     :root{
-      --bg: #f5f6f8;
-      --panel: #ffffff;
-      --border: #e1e3e6;
-      --text: #1b1a19;
-      --muted: #605e5c;
-      --shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.06);
-      --radius: 12px;
-      --topbar-h: 48px;
-      --nav-w: 260px;
-      --accent: #106ebe;
+      --bg:#f4f6f8;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent:#2563eb;
+      --success:#16a34a;
+      --warning:#f59e0b;
+      --danger:#ef4444;
+      --info:#0284c7;
+      --chip-bg:#eef2ff;
+      font-family:Inter, Roboto, Arial, sans-serif;
+      -webkit-font-smoothing:antialiased;
     }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body{
-      margin:0;
-      font-family: Segoe UI, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+    body{margin:0;background:var(--bg);color:#0f172a;}
+    .app{max-width:980px;margin:18px auto;padding:18px;}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+    .tech{display:flex;align-items:center;gap:12px;}
+    .tech h1{margin:0;font-size:18px;}
+    .meta{font-size:13px;color:var(--muted);}
+    .controls{display:flex;gap:8px;align-items:center;}
+    .btn{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;}
+    .btn.secondary{background:#fff;border:1px solid #e2e8f0;color:var(--muted);}
+    .tabs{display:flex;gap:8px;margin:12px 0;}
+    .tab{padding:10px 14px;background:var(--card);border-radius:10px;cursor:pointer;border:1px solid transparent;}
+    .tab.active{border-color:#c7d2fe;background:linear-gradient(180deg,#fbfdff,#f7f9ff);}
+    .cards{display:flex;gap:10px;margin:10px 0 20px;}
+    .card{background:var(--card);padding:12px;border-radius:10px;flex:1;box-shadow:0 1px 2px rgba(15,23,42,0.04);}
+    .list{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 1px 2px rgba(15,23,42,0.04);}
+    .row{display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px dashed #eef2ff;}
+    .row:last-child{border-bottom:none;}
+    .part-id{font-weight:600;}
+    .desc{color:var(--muted);font-size:13px;}
+    .qtys{display:flex;gap:8px;align-items:center;margin-left:auto;}
+    .chip{padding:6px 8px;border-radius:999px;font-size:13px;background:var(--chip-bg);color:var(--info);display:inline-flex;align-items:center;}
+    .chip.small{padding:4px 6px;font-size:12px;}
+    .badge{padding:6px 8px;border-radius:8px;font-size:12px;color:white;}
+    .badge.available{background:var(--success);}
+    .badge.onhand{background:var(--info);}
+    .badge.allocated{background:var(--warning);}
+    .badge.onorder{background:#64748b;}
+    .actions{display:flex;gap:8px;margin-left:10px;}
+    .action{padding:6px 8px;border-radius:8px;border:1px solid #e6eefc;background:#fff;cursor:pointer;font-size:13px;}
+    .action.primary{background:var(--accent);color:white;border:none;}
+    .expand{font-size:13px;color:var(--muted);margin-left:8px;cursor:pointer;}
+    .small{font-size:13px;color:var(--muted);}
+    .box-card{display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:10px;background:#fff;margin-bottom:8px;border:1px solid #eef2ff;}
+    .modal{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(2,6,23,0.45);display:flex;align-items:center;justify-content:center;z-index:99;}
+    .modal .panel{width:92%;max-width:720px;background:#fff;padding:16px;border-radius:10px;}
+    .field{display:flex;flex-direction:column;margin:8px 0;}
+    input[type="text"], input[type="number"], textarea, select{padding:8px;border-radius:8px;border:1px solid #e6eefc;font-size:14px;}
+    .row-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .toast{position:fixed;right:16px;bottom:16px;background:#0f172a;color:#fff;padding:12px 14px;border-radius:8px;box-shadow:0 6px 18px rgba(2,6,23,0.2);}
+    .muted{color:var(--muted);}
+    .pending-dot{width:9px;height:9px;background:#f59e0b;border-radius:99px;display:inline-block;margin-left:8px;}
+    .tag{background:#eef2ff;padding:6px 8px;border-radius:8px;color:var(--info);font-weight:600;}
+    .flex{display:flex;gap:8px;align-items:center;}
+    .link{color:var(--accent);text-decoration:underline;cursor:pointer;font-size:13px;}
+    footer{margin-top:18px;font-size:13px;color:var(--muted);text-align:center;}
+    @media(max-width:640px){
+      .row-grid{grid-template-columns:1fr;}
     }
-
-    .shell{
-      height:100vh;
-      display:grid;
-      grid-template-rows: var(--topbar-h) 1fr;
-    }
-
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding: 0 14px;
-      background: var(--panel);
-      border-bottom:1px solid var(--border);
-    }
-    .brand .title{ font-weight: 600; }
-
-    .main{
-      min-height:0;
-      display:grid;
-      grid-template-columns: var(--nav-w) 1fr;
-    }
-
-    .sidebar{
-      background: var(--panel);
-      border-right:1px solid var(--border);
-      padding: 12px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      min-height:0;
-    }
-    .nav-title{ font-weight: 600; }
-    .nav-section{
-      margin-top: 6px;
-      padding-top: 10px;
-      border-top:1px solid var(--border);
-    }
-    .nav-section small{ color: var(--muted); display:block; margin: 0 6px 8px; }
-    .nav-btn{ width:100%; display:flex; justify-content:flex-start; }
-
-    .content{
-      padding: 16px;
-      min-height:0;
-      overflow:auto;
-    }
-    .card{
-      background: var(--panel);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
-      min-height: calc(100vh - var(--topbar-h) - 32px);
-    }
-
-    .row{ display:flex; gap:10px; align-items:center; }
-    .row.wrap{ flex-wrap:wrap; }
-    .space{ flex:1; }
-    .muted{ color: var(--muted); }
-    .h1{ font-size: 18px; font-weight: 650; margin:0; }
-    .h2{ font-size: 14px; font-weight: 650; margin:0; }
-    .divider{ height:1px; background: var(--border); margin: 12px 0; }
-
-    .notice{
-      border:1px solid var(--border);
-      background:#fff;
-      border-radius: 10px;
-      padding:10px;
-      margin: 10px 0;
-    }
-    .notice.ok{ border-color:#c7e0c2; background:#f3fff2; }
-    .notice.err{ border-color:#f2b8b5; background:#fff6f5; }
-    .notice.warn{ border-color:#f6d27a; background:#fffbf0; }
-
-    .grid-2{
-      display:grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 12px;
-      min-height:0;
-    }
-    @media (max-width: 1100px){
-      .main{ grid-template-columns: 1fr; }
-      .sidebar{ display:none; }
-      .grid-2{ grid-template-columns: 1fr; }
-    }
-
-    .panel{
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--panel);
-      padding: 12px;
-      min-height:0;
-    }
-
-    /* Items */
-    .items{ display:flex; flex-direction:column; gap:10px; margin-top: 10px; }
-    .item-row{
-      border:1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px;
-      background:#fff;
-      display:grid;
-      grid-template-columns: 1.6fr 0.7fr 1.0fr;
-      gap:10px;
-      align-items:start;
-    }
-    .item-meta{ display:flex; flex-direction:column; gap:4px; }
-    .tag{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border:1px solid var(--border);
-      color: var(--muted);
-      width: fit-content;
-    }
-    .tag.wo{ border-color: rgba(16,110,190,.35); color: var(--accent); }
-    .tag.vs{ border-color: rgba(138,90,0,.35); color: #8a5a00; }
-
-    .status-badge{
-      display:inline-flex;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border:1px solid var(--border);
-      color: var(--muted);
-      width: fit-content;
-    }
-    .status-badge.recv{ background:#f3fff2; border-color:#c7e0c2; color:#1a5e1a; }
-    .status-badge.miss{ background:#fff6f5; border-color:#f2b8b5; color:#a4262c; }
-    .status-badge.dmg{ background:#fffbf0; border-color:#f6d27a; color:#8a5a00; }
-
-    .file-box{
-      margin-top: 8px;
-      padding: 8px;
-      border:1px dashed var(--border);
-      border-radius: 10px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      background:#fff;
-    }
-
-    /* Tables */
-    .table{
-      width:100%;
-      border-collapse: collapse;
-      background:#fff;
-      border:1px solid var(--border);
-      border-radius: 12px;
-      overflow:hidden;
-    }
-    .table th, .table td{
-      text-align:left;
-      padding:10px;
-      border-bottom:1px solid var(--border);
-      font-size: 13px;
-      vertical-align: top;
-    }
-    .table th{ background:#fafafa; color: var(--muted); font-weight: 600; }
-    .table tr:last-child td{ border-bottom:none; }
-
-    .pill{
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      background:#fff;
-    }
-
-    .hidden{ display:none !important; }
   </style>
 </head>
-
 <body>
-  <div class="shell">
-    <div class="topbar">
-      <div class="brand">
-        <div class="title">Field Service</div>
+  <div class="app" id="app">
+    <header>
+      <div class="tech">
+        <div>
+          <h1>Technician Van Stock — T1 (John Doe)</h1>
+          <div class="meta">Tech ID: T1 • Location: Berlin</div>
+        </div>
       </div>
-      <div class="row">
-        <span class="muted" style="font-size:12px">Technician: T-0042</span>
+      <div class="controls">
+        <div class="meta" id="lastSync">Last sync: —</div>
+        <button class="btn" id="syncBtn">Sync now</button>
+        <button class="btn secondary" id="clearBtn">Reset Demo</button>
+      </div>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="Main tabs">
+      <div class="tab active" data-tab="van" id="tabVan">Van Stock</div>
+      <div class="tab" data-tab="boxes" id="tabBoxes">Deliveries / Reception</div>
+    </div>
+
+    <div id="content">
+      <!-- Van Stock View -->
+      <div id="view-van">
+        <div class="cards">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div class="muted">Total parts</div>
+                <div style="font-size:20px;font-weight:700" id="totalParts">0</div>
+              </div>
+              <div style="text-align:right">
+                <div class="muted">Items to receive</div>
+                <div style="font-size:18px;font-weight:700" id="toReceiveCount">0</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="muted">Allocated</div>
+            <div style="font-size:20px;font-weight:700" id="allocatedCount">0</div>
+          </div>
+          <div class="card">
+            <div class="muted">Missing</div>
+            <div style="font-size:20px;font-weight:700" id="missingCount">0</div>
+          </div>
+        </div>
+
+        <div class="list" id="vanList">
+          <!-- rows -->
+        </div>
+      </div>
+
+      <!-- Boxes View -->
+      <div id="view-boxes" style="display:none;">
+        <div class="list" id="boxList">
+          <!-- box rows -->
+        </div>
       </div>
     </div>
 
-    <div class="main">
-      <aside class="sidebar">
-        <div class="nav-title">Navigation</div>
-
-        <div class="nav-section">
-          <small>Logistics</small>
-
-          <fluent-button class="nav-btn" id="navDeliveries" appearance="primary">
-            Delivery Boxes
-          </fluent-button>
-
-          <fluent-button class="nav-btn" id="navInventory" appearance="subtle">
-            Inventory
-          </fluent-button>
-        </div>
-      </aside>
-
-      <main class="content">
-        <div class="card">
-          <section id="pageDeliveries"></section>
-          <section id="pageInventory" class="hidden"></section>
-        </div>
-      </main>
-    </div>
+    <footer>Mockup prototype — actions stored locally. Use <strong>Sync now</strong> to simulate sending changes.</footer>
   </div>
 
-  <script>
-    // ---------------------------------
-    // Mock data (represents "SAP output")
-    // ---------------------------------
-    const MOCK = {
-      boxes: [
-        {
-          boxId: "BX-102938",
-          shipDate: "2025-12-28T10:30:00Z",
-          items: [
-            // WO-related
-            { id:"i1",  partId:"P-100012", desc:"Thermostat assembly",        qty:1, woId:"WO-450012", status:"Pending", note:"", fileName:"" },
-            { id:"i2",  partId:"P-100201", desc:"Water inlet valve",          qty:2, woId:"WO-450012", status:"Pending", note:"", fileName:"" },
-            { id:"i3",  partId:"P-100880", desc:"Drain pump",                 qty:1, woId:"WO-450130", status:"Pending", note:"", fileName:"" },
-            // Van Stock Reserved (WO-unassigned)
-            { id:"i4",  partId:"P-100311", desc:"Door seal gasket",           qty:1, woId:null,        status:"Pending", note:"", fileName:"" },
-            { id:"i5",  partId:"P-100777", desc:"Hose kit",                   qty:2, woId:null,        status:"Pending", note:"", fileName:"" }
-          ]
-        },
-        {
-          boxId: "BX-774401",
-          shipDate: "2025-12-27T15:05:00Z",
-          items: [
-            // WO-related
-            { id:"i6",  partId:"P-101010", desc:"Control board",              qty:1, woId:"WO-450099", status:"Pending", note:"", fileName:"" },
-            { id:"i7",  partId:"P-100555", desc:"Temperature sensor",         qty:1, woId:"WO-450099", status:"Pending", note:"", fileName:"" },
-            { id:"i8",  partId:"P-100420", desc:"Door lock",                  qty:1, woId:"WO-450208", status:"Pending", note:"", fileName:"" },
-            // Van Stock Reserved
-            { id:"i9",  partId:"P-100901", desc:"Filter cartridge",           qty:3, woId:null,        status:"Pending", note:"", fileName:"" }
-          ]
-        },
-        {
-          boxId: "BX-550019",
-          shipDate: "2025-12-29T07:15:00Z",
-          items: [
-            // WO-related
-            { id:"i10", partId:"P-100333", desc:"Inlet hose",                 qty:1, woId:"WO-450300", status:"Pending", note:"", fileName:"" },
-            { id:"i11", partId:"P-100334", desc:"Outlet hose",                qty:1, woId:"WO-450300", status:"Pending", note:"", fileName:"" },
-            { id:"i12", partId:"P-100120", desc:"Power cable",                qty:1, woId:"WO-450011", status:"Pending", note:"", fileName:"" },
-            // Van Stock Reserved
-            { id:"i13", partId:"P-100432", desc:"Screw set",                  qty:5, woId:null,        status:"Pending", note:"", fileName:"" }
-          ]
-        }
-      ],
+  <!-- Modal container -->
+  <div id="modal" style="display:none;"></div>
 
-      // Inventory (SAP snapshot-like output)
-      // Required min fields: Part ID, description, quantity, inventory status (+ optional expected delivery date)
-      inventory: [
-        { partId:"P-100012", desc:"Thermostat assembly",     qty: 1, status:"Available",  expectedDeliveryDate:null },
-        { partId:"P-100201", desc:"Water inlet valve",       qty: 2, status:"Available",  expectedDeliveryDate:null },
-        { partId:"P-100311", desc:"Door seal gasket",        qty: 1, status:"On Hand",    expectedDeliveryDate:null },
-        { partId:"P-100777", desc:"Hose kit",                qty: 1, status:"On Hand",    expectedDeliveryDate:null },
-        { partId:"P-101010", desc:"Control board",           qty: 1, status:"Allocated",  expectedDeliveryDate:null },
-        { partId:"P-100420", desc:"Door lock",               qty: 1, status:"Allocated",  expectedDeliveryDate:null },
-        { partId:"P-100999", desc:"Pressure switch",         qty: 0, status:"On Order",   expectedDeliveryDate:"2026-01-03" },
-        { partId:"P-100901", desc:"Filter cartridge",        qty: 0, status:"On Order",   expectedDeliveryDate:"2026-01-02" },
+  <!-- Toast -->
+  <div id="toast" style="display:none;" class="toast">Saved</div>
+
+<script>
+/*
+  Simple mockup JS for Van Stock and Delivery Reception.
+  - Data stored in localStorage under "vanMockData"
+  - Pending actions stored under "vanPending"
+  - Sync simulates server processing: moves pending to synced and updates lastSync.
+*/
+
+// Sample data (initial)
+const sampleData = {
+  technician_id: "T1",
+  parts: [
+    {
+      part_id: "P12345",
+      description: 'Valve 3/4"',
+      available_qty: 2,
+      on_hand_qty: 1,
+      allocated_qty: 1,
+      on_order_qty: 0,
+      expected_delivery_date: null,
+      part_price: 12.5,
+      status: "ON_HAND",
+      linked_WOs: [{wo_id:"WO100",booking_date:"2026-05-20",requested_qty:1,consumed_qty:0}],
+      delivery_box_ids: [{box_id:"BOX123",delivered_qty:1}],
+      qc_photos: [],
+      last_updated: new Date().toISOString(),
+      pending_local_changes:false
+    },
+    {
+      part_id: "P67890",
+      description: "Filter",
+      available_qty: 1,
+      on_hand_qty: 0,
+      allocated_qty: 0,
+      on_order_qty: 1,
+      expected_delivery_date: "2026-05-22",
+      part_price: 7.25,
+      status: "ON_ORDER",
+      linked_WOs: [],
+      delivery_box_ids: [],
+      qc_photos: [],
+      last_updated: new Date().toISOString(),
+      pending_local_changes:false
+    },
+    {
+      part_id: "P11111",
+      description: "Hose connector",
+      available_qty: 0,
+      on_hand_qty: 0,
+      allocated_qty: 2,
+      on_order_qty: 0,
+      expected_delivery_date: null,
+      part_price: 5.5,
+      status: "ALLOCATED",
+      linked_WOs: [{wo_id:"WO200",booking_date:"2026-05-21",requested_qty:2,consumed_qty:0}],
+      delivery_box_ids: [],
+      qc_photos: [],
+      last_updated: new Date().toISOString(),
+      pending_local_changes:false
+    }
+  ],
+  boxes: [
+    {
+      box_id:"BOX123",
+      shipment_date:"2026-05-20T07:30:00Z",
+      delivered_by:"Warehouse DE",
+      status:"UNCONFIRMED",
+      items:[
+        {part_id:"P12345",description:'Valve 3/4"',wo_id:"WO100",requested_qty:1,delivered_qty:1},
+        {part_id:"P67890",description:"Filter",wo_id:"WO101",requested_qty:1,delivered_qty:0}
       ]
-    };
-
-    // ---------------------------------
-    // State
-    // ---------------------------------
-    const state = {
-      route: "deliveries",   // deliveries | inventory
-      boxIdInput: "",
-      workingBox: null,      // deep copy of found box for editing
-      message: null          // { type: "ok"|"err"|"warn", text: string }
-    };
-
-    // ---------------------------------
-    // Utilities
-    // ---------------------------------
-    const $ = (sel) => document.querySelector(sel);
-    const escapeHtml = (s) => (s ?? "").toString().replace(/[&<>"']/g, (m) =>
-      ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[m])
-    );
-
-    function formatDate(iso){
-      try{
-        const d = new Date(iso);
-        return d.toLocaleString(undefined, { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
-      }catch{ return iso; }
     }
+  ],
+  missingReports: []
+};
 
-    function itemBadge(status){
-      if (status === "Received") return `<span class="status-badge recv">Received</span>`;
-      if (status === "Missing")  return `<span class="status-badge miss">Missing</span>`;
-      if (status === "Damaged")  return `<span class="status-badge dmg">Damaged</span>`;
-      return `<span class="status-badge">Pending</span>`;
-    }
+const LS_KEY = "vanMockData_v1";
+const LS_PENDING = "vanMockPending_v1";
 
-    function setMessage(type, text){
-      state.message = { type, text };
-      render();
-    }
-    function clearMessage(){
-      state.message = null;
-      render();
-    }
-    function deepCopy(obj){
-      return JSON.parse(JSON.stringify(obj));
-    }
+function loadData(){
+  const raw = localStorage.getItem(LS_KEY);
+  if(raw) return JSON.parse(raw);
+  localStorage.setItem(LS_KEY, JSON.stringify(sampleData));
+  return JSON.parse(localStorage.getItem(LS_KEY));
+}
+function saveData(d){
+  localStorage.setItem(LS_KEY, JSON.stringify(d));
+}
+function loadPending(){ return JSON.parse(localStorage.getItem(LS_PENDING) || "[]"); }
+function savePending(p){ localStorage.setItem(LS_PENDING, JSON.stringify(p)); }
 
-    function renderMessage(){
-      if (!state.message) return "";
-      const cls = state.message.type === "ok" ? "notice ok" : state.message.type === "warn" ? "notice warn" : "notice err";
-      return `<div class="${cls}">
-        <div class="row">
-          <div><b>${escapeHtml(state.message.type.toUpperCase())}</b> — ${escapeHtml(state.message.text)}</div>
-          <div class="space"></div>
-          <fluent-button appearance="subtle" id="btnDismissMsg">Dismiss</fluent-button>
+let state = loadData();
+let pending = loadPending();
+
+function render(){
+  document.getElementById('lastSync').innerText = "Last sync: " + (localStorage.getItem('lastSync') || '—');
+  renderCounts();
+  renderVanList();
+  renderBoxes();
+}
+function renderCounts(){
+  const totalParts = state.parts.length;
+  const toReceive = state.parts.filter(p=>p.status==='TO_BE_RECEIVED' || p.on_hand_qty>0).length;
+  const allocated = state.parts.reduce((s,p)=>s+p.allocated_qty,0);
+  const missing = state.missingReports.length;
+  document.getElementById('totalParts').innerText = totalParts;
+  document.getElementById('toReceiveCount').innerText = toReceive;
+  document.getElementById('allocatedCount').innerText = allocated;
+  document.getElementById('missingCount').innerText = missing;
+}
+function formatDateIso(d){
+  if(!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleDateString();
+}
+
+function renderVanList(){
+  const container = document.getElementById('vanList');
+  container.innerHTML = '';
+  state.parts.forEach(p=>{
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <div style="min-width:180px;">
+        <div class="part-id">${p.part_id}</div>
+        <div class="desc">${p.description}</div>
+        <div class="small">Price: €${p.part_price.toFixed(2)}</div>
+      </div>
+      <div class="qtys">
+        <div class="chip small">Available: ${p.available_qty}</div>
+        <div class="chip small" style="background:#e6f6ff;color:var(--info)">On hand: ${p.on_hand_qty}</div>
+        <div class="chip small" style="background:#fff7ed;color:var(--warning)"><span style="color:var(--muted)">Allocated:</span> ${p.allocated_qty}</div>
+        <div class="chip small" style="background:#f8fafc;color:var(--muted)">On order: ${p.on_order_qty}${p.expected_delivery_date? ' • ETA '+formatDateIso(p.expected_delivery_date):''}</div>
+      </div>
+      <div class="actions">
+        <button class="action" data-act="details" data-id="${p.part_id}">Details</button>
+        <button class="action primary" data-act="consume" data-id="${p.part_id}">Consume</button>
+        <button class="action" data-act="receive" data-id="${p.part_id}">Receive</button>
+        <button class="action" data-act="missing" data-id="${p.part_id}">Missing</button>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+
+  // attach handlers
+  container.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', e=>{
+      const id = b.getAttribute('data-id');
+      const act = b.getAttribute('data-act');
+      if(act==='details') openDetails(id);
+      if(act==='consume') consumePart(id);
+      if(act==='receive') receivePart(id);
+      if(act==='missing') markMissing(id);
+    });
+  });
+}
+
+function renderBoxes(){
+  const container = document.getElementById('boxList');
+  container.innerHTML = '';
+  state.boxes.forEach(box=>{
+    const el = document.createElement('div');
+    el.className = 'box-card';
+    el.innerHTML = `
+      <div>
+        <div style="font-weight:700">${box.box_id}</div>
+        <div class="small muted">${box.delivered_by} • ${new Date(box.shipment_date).toLocaleString()}</div>
+        <div class="small">Status: <span class="tag">${box.status}</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="small muted">${box.items.length} items</div>
+        <button class="action" data-box="${box.box_id}" data-act="open">Open Box</button>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+
+  container.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', e=>{
+      const boxId = b.getAttribute('data-box');
+      openBox(boxId);
+    });
+  });
+}
+
+/* -- actions -- */
+function findPart(part_id){ return state.parts.find(p=>p.part_id===part_id); }
+
+function pushPending(actionType, payload){
+  const entry = {id: 'p-'+Date.now()+'-'+Math.floor(Math.random()*999), actionType, payload, timestamp:new Date().toISOString()};
+  pending.push(entry);
+  savePending(pending);
+  showToast('Queued: '+actionType);
+  // mark local item pending
+  if(payload.part_id){
+    const it = findPart(payload.part_id);
+    if(it){ it.pending_local_changes = true; it.last_updated = new Date().toISOString(); saveData(state); render(); }
+  }
+}
+
+function consumePart(part_id){
+  const part = findPart(part_id);
+  if(!part) return alert('Part not found');
+  const qty = 1;
+  if(part.available_qty < qty){ return alert('Not enough quantity to consume'); }
+  // local update
+  part.available_qty -= qty;
+  part.linked_WOs = part.linked_WOs || [];
+  const targetWO = part.linked_WOs[0] || {wo_id:'WO-Manual', booking_date:null, requested_qty:0, consumed_qty:0};
+  targetWO.consumed_qty = (targetWO.consumed_qty||0) + qty;
+  part.status = 'CONSUMED';
+  part.last_updated = new Date().toISOString();
+  saveData(state);
+  pushPending('CONSUME',{part_id, qty, wo:targetWO.wo_id});
+  render();
+}
+
+function receivePart(part_id){
+  const part = findPart(part_id);
+  if(!part) return;
+  part.on_hand_qty = Math.max(0, (part.on_hand_qty||0));
+  part.available_qty = (part.available_qty||0) + 1;
+  part.status = 'ON_HAND';
+  part.last_updated = new Date().toISOString();
+  saveData(state);
+  pushPending('RECEIVE',{part_id, qty:1});
+  render();
+}
+
+function markMissing(part_id){
+  const reason = prompt('Optional note for missing item:','Not in box');
+  const photo = prompt('Optional photo URL (for demo):','');
+  const part = findPart(part_id);
+  if(!part) return;
+  // create missing report
+  const report = {id:'m-'+Date.now(), part_id, technician_id:state.technician_id, note:reason, photo:photo||null, timestamp:new Date().toISOString()};
+  state.missingReports.push(report);
+  part.status = 'MISSING';
+  part.last_updated = new Date().toISOString();
+  saveData(state);
+  pushPending('MISSING',{part_id, note:reason, photo});
+  render();
+  showToast('Missing reported');
+}
+
+function openDetails(part_id){
+  const part = findPart(part_id);
+  if(!part) return;
+  const html = document.createElement('div');
+  html.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div><strong>${part.part_id}</strong> • ${part.description}</div>
+      <div><button class="action" id="closeModal">Close</button></div>
+    </div>
+    <div class="row-grid">
+      <div>
+        <div class="small muted">Available</div><div style="font-size:18px">${part.available_qty}</div>
+        <div class="small muted" style="margin-top:8px">On hand</div><div style="font-size:16px">${part.on_hand_qty}</div>
+        <div class="small muted" style="margin-top:8px">Allocated</div><div style="font-size:16px">${part.allocated_qty}</div>
+      </div>
+      <div>
+        <div class="small muted">On order</div><div style="font-size:16px">${part.on_order_qty}${part.expected_delivery_date? ' • ETA '+formatDateIso(part.expected_delivery_date):''}</div>
+        <div class="small muted" style="margin-top:8px">Price</div><div style="font-size:16px">€${part.part_price.toFixed(2)}</div>
+        <div style="margin-top:12px"><strong>Linked WOs</strong></div>
+        <div class="small">${part.linked_WOs.map(w=>w.wo_id+' ('+w.booking_date+')').join(', ') || '—'}</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="btn" id="doConsume">Consume</button>
+      <button class="btn secondary" id="doReceive">Receive</button>
+      <button class="btn secondary" id="doMissing">Mark Missing</button>
+    </div>
+  `;
+  showModal(html);
+  document.getElementById('closeModal').addEventListener('click', hideModal);
+  document.getElementById('doConsume').addEventListener('click', ()=>{
+    consumePart(part_id); hideModal();
+  });
+  document.getElementById('doReceive').addEventListener('click', ()=>{ receivePart(part_id); hideModal(); });
+  document.getElementById('doMissing').addEventListener('click', ()=>{ markMissing(part_id); hideModal(); });
+}
+
+/* Box flows */
+function openBox(boxId){
+  const box = state.boxes.find(b=>b.box_id===boxId);
+  if(!box) return;
+  const panel = document.createElement('div');
+  const listHtml = box.items.map(it=>{
+    const status = it.delivered_qty > 0 ? 'ON_HAND' : 'TO_BE_RECEIVED';
+    return `
+      <div style="padding:8px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div><strong>${it.part_id}</strong> • ${it.description}</div>
+          <div class="small muted">WO ${it.wo_id} • Requested ${it.requested_qty} • Delivered ${it.delivered_qty}</div>
         </div>
-      </div>`;
-    }
+        <div style="display:flex;gap:8px;">
+          <button class="action" data-act="receive" data-part="${it.part_id}" data-box="${boxId}">Receive</button>
+          <button class="action" data-act="missing" data-part="${it.part_id}" data-box="${boxId}">Missing</button>
+          <button class="action" data-act="damage" data-part="${it.part_id}" data-box="${boxId}">Damaged</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div>
+        <div style="font-weight:700">${box.box_id}</div>
+        <div class="small muted">${box.delivered_by} • ${new Date(box.shipment_date).toLocaleString()}</div>
+      </div>
+      <div>
+        <button class="action" id="confirmBox">Confirm box received</button>
+        <button class="action" id="closeBox">Close</button>
+      </div>
+    </div>
+    <div>${listHtml}</div>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="btn" id="receiveAll">Receive all</button>
+      <button class="btn secondary" id="markMissingAll">Mark all missing</button>
+    </div>
+  `;
+  showModal(panel);
+  // handlers
+  panel.querySelectorAll('button[data-act]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const act = b.getAttribute('data-act');
+      const part = b.getAttribute('data-part');
+      if(act==='receive'){ receiveFromBox(part, box.box_id); }
+      if(act==='missing'){ markMissingFromBox(part, box.box_id); }
+      if(act==='damage'){ reportDamageFromBox(part, box.box_id); }
+      // re-render modal content by closing and reopening (simpler)
+      hideModal();
+      openBox(boxId);
+    });
+  });
+  document.getElementById('confirmBox').addEventListener('click', ()=>{
+    confirmBox(box.box_id);
+    hideModal();
+  });
+  document.getElementById('closeBox').addEventListener('click', hideModal);
+  document.getElementById('receiveAll').addEventListener('click', ()=>{
+    box.items.forEach(it=>{ if(it.delivered_qty>0) receiveFromBox(it.part_id, box.box_id); });
+    hideModal(); render();
+  });
+  document.getElementById('markMissingAll').addEventListener('click', ()=>{
+    box.items.forEach(it=>{ if(it.delivered_qty===0) markMissingFromBox(it.part_id, box.box_id); });
+    hideModal(); render();
+  });
+}
 
-    // ---------------------------------
-    // Navigation
-    // ---------------------------------
-    function setRoute(route){
-      state.route = route;
-      if (route === "deliveries") {
-        $("#navDeliveries").setAttribute("appearance","primary");
-        $("#navInventory").setAttribute("appearance","subtle");
-        $("#pageDeliveries").classList.remove("hidden");
-        $("#pageInventory").classList.add("hidden");
-      } else {
-        $("#navDeliveries").setAttribute("appearance","subtle");
-        $("#navInventory").setAttribute("appearance","primary");
-        $("#pageDeliveries").classList.add("hidden");
-        $("#pageInventory").classList.remove("hidden");
+function receiveFromBox(part_id, box_id){
+  const part = findPart(part_id);
+  if(!part){
+    // part not in van stock: add it
+    state.parts.push({
+      part_id, description:'(from box)', available_qty:1, on_hand_qty:1, allocated_qty:0, on_order_qty:0,
+      expected_delivery_date:null, part_price:0, status:'ON_HAND', linked_WOs:[], delivery_box_ids:[{box_id,delivered_qty:1}],
+      qc_photos:[], last_updated:new Date().toISOString(), pending_local_changes:false
+    });
+  } else {
+    part.available_qty = (part.available_qty||0) + 1;
+    part.on_hand_qty = (part.on_hand_qty||0) + 1;
+    part.delivery_box_ids = part.delivery_box_ids || [];
+    part.delivery_box_ids.push({box_id, delivered_qty:1});
+    part.status = 'ON_HAND';
+    part.last_updated = new Date().toISOString();
+  }
+  saveData(state);
+  pushPending('RECEIVE_FROM_BOX',{part_id, box_id, qty:1});
+  render();
+}
+
+function markMissingFromBox(part_id, box_id){
+  markMissing(part_id);
+  pushPending('MISSING_FROM_BOX',{part_id,box_id});
+}
+
+function reportDamageFromBox(part_id, box_id){
+  const url = prompt('Photo URL for damage (demo):','');
+  const part = findPart(part_id);
+  if(!part) return;
+  part.status = 'DAMAGED';
+  part.qc_photos = part.qc_photos || [];
+  if(url) part.qc_photos.push(url);
+  part.last_updated = new Date().toISOString();
+  saveData(state);
+  pushPending('DAMAGED',{part_id,box_id,photo:url});
+  render();
+}
+
+function confirmBox(boxId){
+  const box = state.boxes.find(b=>b.box_id===boxId);
+  if(!box) return;
+  box.status = 'CONFIRMED';
+  box.confirmed_at = new Date().toISOString();
+  saveData(state);
+  pushPending('CONFIRM_BOX',{boxId});
+  showToast('Box confirmed');
+  render();
+}
+
+/* modal helpers */
+function showModal(content){
+  const modal = document.getElementById('modal');
+  modal.innerHTML = '<div class="modal"><div class="panel" id="modalPanel"></div></div>';
+  document.getElementById('modalPanel').appendChild(content);
+  modal.style.display = 'block';
+}
+function hideModal(){
+  const modal = document.getElementById('modal');
+  modal.style.display = 'none';
+  modal.innerHTML = '';
+}
+
+/* toast */
+let toastTimer=null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.innerText = msg;
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.style.display = 'none'; },3000);
+}
+
+/* Sync simulation */
+document.getElementById('syncBtn').addEventListener('click', ()=>{
+  // simulate API call and success
+  if(pending.length===0){ localStorage.setItem('lastSync', new Date().toLocaleString()); render(); showToast('Already up to date'); return; }
+  showToast('Syncing...');
+  setTimeout(()=>{
+    // mark all pending as processed
+    pending.forEach(entry=>{
+      // basic simulation: mark pending_local_changes false for involved parts
+      if(entry.payload && entry.payload.part_id){
+        const p = findPart(entry.payload.part_id);
+        if(p) p.pending_local_changes = false;
       }
-      render();
-    }
-
-    // ---------------------------------
-    // Delivery Boxes actions
-    // ---------------------------------
-    function findBoxById(boxId){
-      clearMessage();
-      const found = MOCK.boxes.find(b => b.boxId.toLowerCase() === (boxId||"").trim().toLowerCase());
-      if (!found){
-        state.workingBox = null;
-        setMessage("err", "Box ID not found. Please check and try again.");
-        return;
-      }
-      state.workingBox = deepCopy(found);
-      setMessage("ok", `Box loaded: ${found.boxId}`);
-    }
-
-    function resetBox(){
-      state.boxIdInput = "";
-      state.workingBox = null;
-      clearMessage();
-    }
-
-    function updateItem(itemId, patch){
-      if (!state.workingBox) return;
-      state.workingBox.items = state.workingBox.items.map(it => it.id === itemId ? { ...it, ...patch } : it);
-      render();
-    }
-
-    function validateBoxBeforeSubmit(){
-      if (!state.workingBox) return "No box selected.";
-      const items = state.workingBox.items || [];
-      const pending = items.filter(i => i.status === "Pending");
-      if (pending.length) return "Please confirm all items (no Pending items allowed).";
-
-      const damagedNoFile = items.filter(i => i.status === "Damaged" && !i.fileName);
-      if (damagedNoFile.length) return "For Damaged items, file upload is required.";
-
-      const damagedNoNote = items.filter(i => i.status === "Damaged" && !(i.note||"").trim());
-      if (damagedNoNote.length) return "For Damaged items, a short note is required.";
-
-      return null;
-    }
-
-    // Inventory update helper (demo behavior)
-    // When WO-unassigned item is received, we move/add it to "On Hand"
-    function upsertInventory(partId, desc, deltaQty, targetStatus){
-      const row = MOCK.inventory.find(r => r.partId === partId && r.status === targetStatus);
-      if (row){
-        row.qty += deltaQty;
-      } else {
-        MOCK.inventory.push({ partId, desc, qty: deltaQty, status: targetStatus, expectedDeliveryDate: null });
-      }
-    }
-
-    function submitBoxConfirmation(){
-      clearMessage();
-      const err = validateBoxBeforeSubmit();
-      if (err){ setMessage("err", err); return; }
-
-      // Persist into mock "DB"
-      const idx = MOCK.boxes.findIndex(b => b.boxId === state.workingBox.boxId);
-      if (idx >= 0) MOCK.boxes[idx] = deepCopy(state.workingBox);
-
-      // Demo rule:
-      // If item is Van Stock Reserved (WO-unassigned) and Received => add to Inventory as "On Hand"
-      const reservedReceived = state.workingBox.items.filter(i => !i.woId && i.status === "Received");
-      reservedReceived.forEach(i => upsertInventory(i.partId, i.desc, i.qty, "On Hand"));
-
-      const items = state.workingBox.items;
-      const received = items.filter(i => i.status === "Received").length;
-      const missing = items.filter(i => i.status === "Missing").length;
-      const damaged = items.filter(i => i.status === "Damaged").length;
-
-      setMessage("ok", `Submitted. Received: ${received}, Missing: ${missing}, Damaged: ${damaged}.`);
-    }
-
-    function renderItemRow(item){
-      const kindTag = item.woId
-        ? `<span class="tag wo">WO-related • ${escapeHtml(item.woId)}</span>`
-        : `<span class="tag vs">Van Stock Reserved • WO-unassigned</span>`;
-
-      const fileBlock = (item.status === "Damaged") ? `
-        <div class="file-box">
-          <input type="file" data-file-for="${escapeHtml(item.id)}" />
-          <fluent-text-area
-            data-note-for="${escapeHtml(item.id)}"
-            placeholder="Damage note (required)"
-            value="${escapeHtml(item.note||"")}"
-            resize="vertical"
-            style="width:100%"
-          ></fluent-text-area>
-          <div class="muted" style="font-size:12px">
-            Selected file: <b>${escapeHtml(item.fileName || "—")}</b>
-          </div>
-        </div>
-      ` : "";
-
-      return `
-        <div class="item-row">
-          <div class="item-meta">
-            <div><b>${escapeHtml(item.partId)}</b> — ${escapeHtml(item.desc)}</div>
-            <div class="row wrap" style="gap:8px">
-              ${kindTag}
-              ${itemBadge(item.status)}
-            </div>
-            ${fileBlock}
-          </div>
-
-          <div>
-            <div class="muted" style="font-size:12px">Quantity</div>
-            <div style="font-size:14px; font-weight:650">${escapeHtml(item.qty)}</div>
-          </div>
-
-          <div>
-            <div class="muted" style="font-size:12px">Confirmation</div>
-            <fluent-select data-status-for="${escapeHtml(item.id)}" style="width:100%">
-              <fluent-option value="Pending"  ${item.status==="Pending" ?"selected":""}>Pending</fluent-option>
-              <fluent-option value="Received" ${item.status==="Received"?"selected":""}>Received</fluent-option>
-              <fluent-option value="Missing"  ${item.status==="Missing" ?"selected":""}>Missing</fluent-option>
-              <fluent-option value="Damaged"  ${item.status==="Damaged" ?"selected":""}>Damaged</fluent-option>
-            </fluent-select>
-          </div>
-        </div>
-      `;
-    }
-
-    function renderDeliveriesPage(){
-      const container = $("#pageDeliveries");
-      const box = state.workingBox;
-
-      let detailsHtml = `
-        <div class="panel">
-          <div class="muted">Enter a Box ID and click “Find box”.</div>
-          ${renderMessage()}
-        </div>
-      `;
-
-      if (box){
-        const items = box.items || [];
-        const woItems = items.filter(x => !!x.woId);
-        const vsItems = items.filter(x => !x.woId);
-        const done = items.filter(x => x.status !== "Pending").length;
-
-        detailsHtml = `
-          <div class="panel">
-            <div class="row wrap">
-              <div>
-                <div class="h2">Box details</div>
-                <div class="muted" style="font-size:12px">
-                  Box ID: <b>${escapeHtml(box.boxId)}</b> • Ship: ${escapeHtml(formatDate(box.shipDate))} • Progress: ${done}/${items.length}
-                </div>
-              </div>
-              <div class="space"></div>
-              <span class="pill">Items: ${items.length}</span>
-              <span class="pill">WO-related: ${woItems.length}</span>
-              <span class="pill">Van Stock Reserved: ${vsItems.length}</span>
-            </div>
-
-            ${renderMessage()}
-
-            <fluent-tabs activeid="woTab" id="boxTabs" style="margin-top:10px">
-              <fluent-tab id="woTab">Work Order related (${woItems.length})</fluent-tab>
-              <fluent-tab id="vsTab">Van Stock Reserved (${vsItems.length})</fluent-tab>
-
-              <fluent-tab-panel id="woTabPanel">
-                <div class="items">
-                  ${woItems.length ? woItems.map(renderItemRow).join("") : `<div class="notice warn">No WO-related items in this box.</div>`}
-                </div>
-              </fluent-tab-panel>
-
-              <fluent-tab-panel id="vsTabPanel">
-                <div class="items">
-                  ${vsItems.length ? vsItems.map(renderItemRow).join("") : `<div class="notice warn">No Van Stock Reserved items in this box.</div>`}
-                </div>
-              </fluent-tab-panel>
-            </fluent-tabs>
-
-            <div class="divider"></div>
-
-            <div class="row wrap" style="justify-content:flex-end">
-              <fluent-button appearance="subtle" id="btnResetBox">Reset</fluent-button>
-              <fluent-button appearance="primary" id="btnSubmitBox">Submit confirmation</fluent-button>
-            </div>
-          </div>
-        `;
-      }
-
-      container.innerHTML = `
-        <div class="row wrap" style="margin-bottom:10px">
-          <h1 class="h1">Delivery Boxes</h1>
-          <div class="space"></div>
-          <fluent-button appearance="subtle" id="btnClearMsg">Clear message</fluent-button>
-        </div>
-
-        <div class="grid-2">
-          <div class="panel">
-            <div class="h2">Find Delivery Box</div>
-
-            <div class="row" style="margin-top:10px">
-              <fluent-text-field
-                id="boxIdInput"
-                placeholder="e.g., BX-102938"
-                value="${escapeHtml(state.boxIdInput)}"
-                style="width:100%"
-              ></fluent-text-field>
-              <fluent-button appearance="primary" id="btnFindBox">Find box</fluent-button>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="muted" style="font-size:12px; line-height:1.5">
-              Example Box IDs: <b>BX-102938</b>, <b>BX-774401</b>, <b>BX-550019</b>
-            </div>
-          </div>
-
-          ${detailsHtml}
-        </div>
-      `;
-
-      // Events
-      const input = $("#boxIdInput");
-      input?.addEventListener("input", (e) => {
-        state.boxIdInput = e.target.value || "";
-      });
-
-      $("#btnFindBox")?.addEventListener("click", () => findBoxById(state.boxIdInput));
-      $("#btnClearMsg")?.addEventListener("click", clearMessage);
-      $("#btnDismissMsg")?.addEventListener("click", clearMessage);
-      $("#btnResetBox")?.addEventListener("click", resetBox);
-      $("#btnSubmitBox")?.addEventListener("click", submitBoxConfirmation);
-
-      // Item status changes
-      container.querySelectorAll("[data-status-for]")?.forEach(sel => {
-        sel.addEventListener("change", (e) => {
-          const itemId = e.currentTarget.getAttribute("data-status-for");
-          const value = e.currentTarget.value;
-          if (value !== "Damaged") {
-            updateItem(itemId, { status: value, fileName: "", note: "" });
-          } else {
-            updateItem(itemId, { status: value });
-          }
-        });
-      });
-
-      // File changes
-      container.querySelectorAll("input[type='file'][data-file-for]")?.forEach(inp => {
-        inp.addEventListener("change", (e) => {
-          const itemId = e.currentTarget.getAttribute("data-file-for");
-          const file = e.currentTarget.files && e.currentTarget.files[0];
-          updateItem(itemId, { fileName: file ? file.name : "" });
-        });
-      });
-
-      // Note changes
-      container.querySelectorAll("[data-note-for]")?.forEach(ta => {
-        ta.addEventListener("input", (e) => {
-          const itemId = e.currentTarget.getAttribute("data-note-for");
-          const value = e.currentTarget.value || "";
-          updateItem(itemId, { note: value });
-        });
-      });
-    }
-
-    // ---------------------------------
-    // Inventory rendering
-    // ---------------------------------
-    function renderInventoryTable(rows){
-      const showExpected = rows.some(r => r.status === "On Order");
-      return `
-        <table class="table">
-          <thead>
-            <tr>
-              <th style="width:180px">Part ID</th>
-              <th>Part description</th>
-              <th style="width:140px">Quantity</th>
-              <th style="width:160px">Inventory status</th>
-              ${showExpected ? `<th style="width:220px">Expected delivery date</th>` : ``}
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map(r => `
-              <tr>
-                <td><b>${escapeHtml(r.partId)}</b></td>
-                <td>${escapeHtml(r.desc)}</td>
-                <td>${escapeHtml(r.qty)}</td>
-                <td>${escapeHtml(r.status)}</td>
-                ${showExpected ? `<td class="muted">${escapeHtml(r.expectedDeliveryDate || "—")}</td>` : ``}
-              </tr>
-            `).join("") || `<tr><td colspan="${showExpected ? 5 : 4}" class="muted">No items.</td></tr>`}
-          </tbody>
-        </table>
-      `;
-    }
-
-    function renderInventoryPage(){
-      const container = $("#pageInventory");
-      const all = MOCK.inventory;
-
-      const available = all.filter(x => x.status === "Available");
-      const onHand = all.filter(x => x.status === "On Hand");
-      const allocated = all.filter(x => x.status === "Allocated");
-      const onOrder = all.filter(x => x.status === "On Order");
-
-      container.innerHTML = `
-        <div class="row wrap" style="margin-bottom:10px">
-          <h1 class="h1">Inventory</h1>
-          <div class="space"></div>
-          <span class="pill">Source: SAP</span>
-          <span class="pill">Last refresh: ${escapeHtml(new Date().toLocaleString())}</span>
-        </div>
-
-        <div class="panel">
-          <div class="h2">My Van Inventory</div>
-
-          <div class="divider"></div>
-
-          <fluent-tabs activeid="tabAvailable" id="invTabs">
-            <fluent-tab id="tabAvailable">Available (${available.length})</fluent-tab>
-            <fluent-tab id="tabOnHand">On Hand (${onHand.length})</fluent-tab>
-            <fluent-tab id="tabAllocated">Allocated (${allocated.length})</fluent-tab>
-            <fluent-tab id="tabOnOrder">On Order (${onOrder.length})</fluent-tab>
-
-            <fluent-tab-panel id="panelAvailable">
-              ${renderInventoryTable(available)}
-            </fluent-tab-panel>
-
-            <fluent-tab-panel id="panelOnHand">
-              ${renderInventoryTable(onHand)}
-            </fluent-tab-panel>
-
-            <fluent-tab-panel id="panelAllocated">
-              ${renderInventoryTable(allocated)}
-            </fluent-tab-panel>
-
-            <fluent-tab-panel id="panelOnOrder">
-              ${renderInventoryTable(onOrder)}
-            </fluent-tab-panel>
-          </fluent-tabs>
-        </div>
-      `;
-    }
-
-    // ---------------------------------
-    // Render switch
-    // ---------------------------------
-    function render(){
-      if (state.route === "deliveries") renderDeliveriesPage();
-      if (state.route === "inventory") renderInventoryPage();
-    }
-
-    // Init
-    $("#navDeliveries").addEventListener("click", () => setRoute("deliveries"));
-    $("#navInventory").addEventListener("click", () => setRoute("inventory"));
+    });
+    pending = [];
+    savePending(pending);
+    localStorage.setItem('lastSync', new Date().toLocaleString());
     render();
-  </script>
+    showToast('Sync complete');
+  },900);
+});
+
+/* Reset demo */
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  if(!confirm('Reset demo data?')) return;
+  localStorage.removeItem(LS_KEY);
+  localStorage.removeItem(LS_PENDING);
+  state = loadData();
+  pending = loadPending();
+  localStorage.removeItem('lastSync');
+  render();
+});
+
+/* Tabs */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const tab = t.getAttribute('data-tab');
+    document.getElementById('view-van').style.display = tab==='van' ? '' : 'none';
+    document.getElementById('view-boxes').style.display = tab==='boxes' ? '' : 'none';
+  });
+});
+
+/* init */
+render();
+
+</script>
 </body>
 </html>
