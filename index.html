@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Van Stock & Reception Mockup</title>
+  <title>Van Stock & Reception Mockup (Updated)</title>
   <style>
     :root{
       --bg:#f4f6f8;--card:#fff;--muted:#6b7280;--accent:#2563eb;--success:#16a34a;
@@ -46,7 +46,12 @@
     footer{margin-top:18px;font-size:13px;color:var(--muted);text-align:center;}
     .summary-line{font-size:13px;color:var(--muted);margin-top:6px;}
     .expand{cursor:pointer;color:var(--accent);font-size:13px}
-    .pending-dot{width:9px;height:9px;background:#f59e0b;border-radius:99px;display:inline-block;margin-left:8px;}
+    .status-badge{padding:6px 8px;border-radius:8px;color:white;font-weight:600}
+    .status-available{background:var(--success)}
+    .status-vanreserved{background:#7c3aed}
+    .status-onhand{background:var(--info)}
+    .status-allocated{background:var(--warning);color:#111}
+    .status-onorder{background:#64748b}
     @media(max-width:640px){.row-grid{grid-template-columns:1fr;}}
   </style>
 </head>
@@ -97,6 +102,18 @@
           </div>
         </div>
 
+        <div style="margin-bottom:8px;">
+          <div class="small muted">Legend:</div>
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            <div class="status-badge status-available">Available (safety stock)</div>
+            <div class="status-badge status-vanreserved">Van stock reserved</div>
+            <div class="status-badge status-onhand">On Hand (delivered for today's WO / reception needed)</div>
+            <div class="status-badge status-allocated">Allocated (tied to WO)</div>
+            <div class="status-badge status-onorder">On Order (replenishment or confirmed missing)</div>
+          </div>
+          <div class="small muted" style="margin-top:6px;">Notes: Available = default van stock technicians keep. Van stock reserved = ERP booked from available. On Order includes van replenishment and parts confirmed missing at Reception (DDP-58572).</div>
+        </div>
+
         <div class="list" id="vanList"></div>
       </div>
 
@@ -106,15 +123,14 @@
           <div style="display:flex;gap:8px;align-items:center;">
             <input type="text" id="boxInput" placeholder="Enter or scan Box ID (e.g. BOX123)" />
             <button class="btn" id="fetchBox">Open Box</button>
-            <button class="btn secondary" id="showAssigned">Assigned boxes</button>
-            <div style="margin-left:auto" class="small muted">Tip: you can add manual items inside box view</div>
+            <div style="margin-left:auto" class="small muted">You must enter Box ID to open a box. Default open is disabled.</div>
           </div>
         </div>
-        <div id="boxArea" class="list"></div>
+        <div id="boxArea" class="list"><div class="small muted">Enter Box ID above and click "Open Box" to view contents.</div></div>
       </div>
     </div>
 
-    <footer>Mockup — read-only van stock view; reception flows update van stock. Local demo (localStorage).</footer>
+    <footer>Mockup — van stock view is read-only. Reception requires Box ID. Local demo (localStorage).</footer>
   </div>
 
   <div id="modal" style="display:none;"></div>
@@ -122,9 +138,10 @@
 
 <script>
 /* Updated mock implementing:
-   - Read-only van stock list with multiple on_orders support and ETA summary
-   - Reception requires Box ID, shows contents, manual add item, matching to on_orders (earliest ETA)
-   - Pending queue and sync simulation (localStorage)
+   - Clear status definitions: Available (safety stock), Van stock reserved, On Hand, Allocated, On Order (including RECEPTION_MISSING)
+   - Van Stock read-only, shows on_orders summary with multiple ETAs
+   - Reception requires Box ID entry to open; no default open button
+   - Matching algorithm uses on_orders and decrements outstanding_qty; unmatched quantities create exception records
 */
 
 const SAMPLE = {
@@ -137,8 +154,8 @@ const SAMPLE = {
       total_qty: 3,
       breakdown: {available:2, on_hand_delivered_today:1, allocated:0},
       on_orders: [
-        {order_id:"O-1001", supplier:"WH-DE", qty:2, outstanding_qty:2, eta:"2026-05-22", status:"IN_TRANSIT", po_number:"PO1001", tracking:"TRK123", confidence:"High", created_at:"2026-05-01T08:00:00Z"},
-        {order_id:"O-1002", supplier:"WH-DE", qty:1, outstanding_qty:1, eta:"2026-05-27", status:"ORDERED", po_number:"PO1002", tracking:null, confidence:"Medium", created_at:"2026-05-03T10:00:00Z"}
+        {order_id:"O-1001", supplier:"WH-DE", qty:2, outstanding_qty:2, eta:"2026-05-22", status:"IN_TRANSIT", po_number:"PO1001", tracking:"TRK123", confidence:"High", source:"REPLENISHMENT", created_at:"2026-05-01T08:00:00Z"},
+        {order_id:"O-1002", supplier:"WH-DE", qty:1, outstanding_qty:1, eta:"2026-05-27", status:"ORDERED", po_number:"PO1002", tracking:null, confidence:"Medium", source:"RECEPTION_MISSING", created_at:"2026-05-03T10:00:00Z"}
       ],
       price: {amount:12.5,currency:"EUR",incl_vat:true},
       status: "ON_HAND_DELIVERED_TODAY",
@@ -152,12 +169,25 @@ const SAMPLE = {
       total_qty: 1,
       breakdown: {available:1, on_hand_delivered_today:0, allocated:0},
       on_orders: [
-        {order_id:"O-2001", supplier:"WH-DE", qty:2, outstanding_qty:2, eta:"2026-05-18", status:"IN_TRANSIT", po_number:"PO2001", tracking:"TRK555", confidence:"High", created_at:"2026-05-02T09:00:00Z"},
-        {order_id:"O-2002", supplier:"WH-DE", qty:1, outstanding_qty:1, eta:"2026-05-27", status:"ORDERED", po_number:"PO2002", tracking:null, confidence:"Medium", created_at:"2026-05-04T11:00:00Z"}
+        {order_id:"O-2001", supplier:"WH-DE", qty:2, outstanding_qty:2, eta:"2026-05-18", status:"IN_TRANSIT", po_number:"PO2001", tracking:"TRK555", confidence:"High", source:"REPLENISHMENT", created_at:"2026-05-02T09:00:00Z"},
+        {order_id:"O-2002", supplier:"WH-DE", qty:1, outstanding_qty:1, eta:"2026-05-27", status:"ORDERED", po_number:"PO2002", tracking:null, confidence:"Medium", source:"REPLENISHMENT", created_at:"2026-05-04T11:00:00Z"}
       ],
       price: {amount:7.25,currency:"EUR",incl_vat:true},
       status: "AVAILABLE",
       linked_WOs: [],
+      last_updated: new Date().toISOString()
+    },
+    {
+      part_id: "P22222",
+      part_name: "P22222",
+      description: "Thermostat (reserved example)",
+      total_qty: 1,
+      breakdown: {available:0, on_hand_delivered_today:0, allocated:0},
+      on_orders: [],
+      price: {amount:45.00,currency:"EUR",incl_vat:true},
+      status: "VAN_STOCK_RESERVED",
+      reserved_for: { wo_id: "WO555", booking_date: "2026-05-25" },
+      linked_WOs: [{wo_id:"WO555",booking_date:"2026-05-25"}],
       last_updated: new Date().toISOString()
     },
     {
@@ -189,7 +219,7 @@ const SAMPLE = {
   pending: []
 };
 
-const LS_KEY = "vanMock_v2";
+const LS_KEY = "vanMock_v3";
 
 function loadState(){
   const raw = localStorage.getItem(LS_KEY);
@@ -205,7 +235,7 @@ function render(){
   document.getElementById('lastSync').innerText = "Last sync: " + (localStorage.getItem('lastSync') || '—');
   renderCounts();
   renderVanList();
-  renderBoxesSummary();
+  renderBoxAreaMessage();
 }
 function renderCounts(){
   const totalParts = state.parts.length;
@@ -240,6 +270,14 @@ function renderVanList(){
       if(second) etaSummary += ` • ${formatDate(second.eta)} (${second.outstanding_qty})`;
       if(p.on_orders.length>2) etaSummary += ` • +${p.on_orders.length-2} more`;
     }
+    // status badge
+    let statusHtml = '<div class="tag">—</div>';
+    if(p.status==='AVAILABLE') statusHtml = '<div class="status-badge status-available">Available</div>';
+    if(p.status==='VAN_STOCK_RESERVED') statusHtml = '<div class="status-badge status-vanreserved">Van stock reserved</div>';
+    if(p.status==='ON_HAND_DELIVERED_TODAY') statusHtml = '<div class="status-badge status-onhand">On Hand (today)</div>';
+    if(p.status==='ALLOCATED') statusHtml = '<div class="status-badge status-allocated">Allocated</div>';
+    if(p.status==='ON_ORDER') statusHtml = '<div class="status-badge status-onorder">On Order</div>';
+
     // overdue detection
     const hasOverdue = (p.on_orders || []).some(o=> new Date(o.eta) < startOfDay(new Date()) && o.outstanding_qty>0);
     row.innerHTML = `
@@ -255,7 +293,7 @@ function renderVanList(){
       </div>
       <div style="margin-left:auto;text-align:right">
         ${ hasOverdue ? `<div style="margin-bottom:6px"><span class="eta-badge eta-overdue">Overdue</span></div>` : ''}
-        <div><span class="tag">${p.status}</span></div>
+        <div>${statusHtml}</div>
         <div style="margin-top:8px"><span class="expand link" data-id="${p.part_id}">Details</span></div>
       </div>
     `;
@@ -271,14 +309,8 @@ function renderVanList(){
   });
 }
 
-function formatDate(d){
-  if(!d) return '';
-  const dt = new Date(d); return dt.toLocaleDateString();
-}
-function formatPrice(p){
-  if(!p) return '';
-  return `${p.currency} ${p.amount.toFixed(2)} ${p.incl_vat? '(incl. VAT)':''}`;
-}
+function formatDate(d){ if(!d) return ''; const dt = new Date(d); return dt.toLocaleDateString(); }
+function formatPrice(p){ if(!p) return ''; return `${p.currency} ${p.amount.toFixed(2)} ${p.incl_vat? '(incl. VAT)':''}`; }
 function escapeHtml(s){ return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;') : ''; }
 
 /* Part detail (read-only) */
@@ -311,7 +343,7 @@ function openPartDetail(part_id){
           const overdue = new Date(o.eta) < startOfDay(new Date()) && o.outstanding_qty>0;
           const etaClass = overdue ? 'eta-overdue' : (new Date(o.eta) - new Date() < 3*24*3600*1000 ? 'eta-soon' : 'eta-ok');
           return `<div style="padding:8px;border-bottom:1px solid #f1f5f9;">
-            <div><span class="eta-badge ${etaClass}">${formatDate(o.eta)}</span> <strong>${o.outstanding_qty}/${o.qty}</strong> • PO ${o.po_number} • ${o.supplier}</div>
+            <div><span class="eta-badge ${etaClass}">${formatDate(o.eta)}</span> <strong>${o.outstanding_qty}/${o.qty}</strong> • PO ${o.po_number} • ${o.supplier} • Source: ${o.source||'N/A'}</div>
             <div class="small muted">Order ${o.order_id} • Status ${o.status} • Tracking ${o.tracking||'—'}</div>
           </div>`;
         }).join('') : '<div class="small muted">No on orders</div>' }
@@ -322,33 +354,17 @@ function openPartDetail(part_id){
   document.getElementById('closeDet').addEventListener('click', hideModal);
 }
 
-/* Boxes summary */
-function renderBoxesSummary(){
+/* Box area message */
+function renderBoxAreaMessage(){
   const el = document.getElementById('boxArea');
-  el.innerHTML = '';
-  if(!state.boxes || state.boxes.length===0){ el.innerHTML = '<div class="small muted">No boxes in demo</div>'; return; }
-  state.boxes.forEach(b=>{
-    const div = document.createElement('div'); div.className='box-card';
-    div.innerHTML = `
-      <div>
-        <div style="font-weight:700">${b.box_id}</div>
-        <div class="small muted">${b.delivered_by} • ${new Date(b.shipment_date).toLocaleString()}</div>
-        <div class="small muted">Status: ${b.status}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="small muted">${b.items.length} items</div>
-        <button class="btn" data-box="${b.box_id}" data-act="open">Open</button>
-      </div>
-    `;
-    el.appendChild(div);
-  });
-  el.querySelectorAll('button[data-act="open"]').forEach(btn=> btn.addEventListener('click', ()=> openBox(btn.getAttribute('data-box'))));
+  el.innerHTML = '<div class="small muted">Enter Box ID above and click "Open Box" to view contents. There is no default open; you must provide a Box ID.</div>';
+  // if a box is opened, openBox will replace content
 }
 
 /* Reception flows */
 function openBox(boxId){
   const box = state.boxes.find(b=>b.box_id===boxId);
-  if(!box) return alert('Box not found');
+  if(!box) return alert('Box not found or not ready. Check Box ID with Operations.');
   const panel = document.createElement('div');
   panel.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -373,14 +389,13 @@ function renderBoxItems(box){
   box.items.forEach(it=>{
     const delivered = it.delivered_qty;
     const requested = it.requested_qty;
-    const color = delivered===requested ? 'var(--success)' : (delivered>0 ? 'var(--warning)' : 'var(--danger)');
     const presentInVan = !!state.parts.find(p=>p.part_id===it.part_id);
     const row = document.createElement('div');
     row.style.padding='8px'; row.style.borderBottom='1px solid #f1f5f9'; row.style.display='flex'; row.style.justifyContent='space-between';
     row.innerHTML = `
       <div>
-        <div><strong>${it.part_id}</strong> • ${it.description}</div>
-        <div class="small muted">WO ${it.wo_id} • Requested ${requested} • Delivered ${delivered} • In van: ${presentInVan? 'Yes':'No'}</div>
+        <div><strong>${it.part_id}</strong> • ${it.description}${it.manual? ' (manual entry)':''}</div>
+        <div class="small muted">WO ${it.wo_id||'—'} • Requested ${requested} • Delivered ${delivered} • In van: ${presentInVan? 'Yes':'No'}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <button class="action" data-act="receive" data-part="${it.part_id}" data-box="${box.box_id}">Receive</button>
@@ -403,7 +418,6 @@ function renderBoxItems(box){
 
 /* Matching algorithm: deduct delivered_qty from earliest on_orders by ETA (outstanding_qty) */
 function receiveFromBoxWithMatching(part_id, box_id){
-  // find box item
   const box = state.boxes.find(b=>b.box_id===box_id);
   if(!box) return;
   const it = box.items.find(i=>i.part_id===part_id);
@@ -411,10 +425,8 @@ function receiveFromBoxWithMatching(part_id, box_id){
   const qty = Math.max(0, it.delivered_qty || 0);
   if(qty<=0) { showToast('No delivered qty to receive'); return; }
 
-  // update or create part in van stock
   let part = state.parts.find(p=>p.part_id===part_id);
   if(!part){
-    // create new part entry (manual add-from-box like earlier behavior)
     part = {
       part_id, part_name:part_id, description: it.description || '', total_qty:0,
       breakdown:{available:0,on_hand_delivered_today:0,allocated:0},
@@ -423,7 +435,6 @@ function receiveFromBoxWithMatching(part_id, box_id){
     state.parts.push(part);
   }
 
-  // Matching to on_orders array
   let remaining = qty;
   const sortedOrders = (part.on_orders || []).slice().sort((a,b)=> new Date(a.eta)-new Date(b.eta));
   for(const ord of sortedOrders){
@@ -432,27 +443,22 @@ function receiveFromBoxWithMatching(part_id, box_id){
       const take = Math.min(ord.outstanding_qty, remaining);
       ord.outstanding_qty -= take;
       remaining -= take;
-      // log fulfillment event
       state.pending.push({type:'FULFILL_ON_ORDER', part_id, order_id:ord.order_id, qty:take, box_id, timestamp:new Date().toISOString()});
     }
   }
-  // if remaining still >0, this is unmatched (manual exception)
   if(remaining>0){
-    // create exception record
     const ex = {id:'E-'+Date.now(), part_id, qty:remaining, box_id, note:'Extra delivered not matched to on_orders', timestamp:new Date().toISOString()};
     state.exceptions.push(ex);
     state.pending.push({type:'EXCEPTION_MANUAL_ADD', ex});
     showToast('Unmatched qty recorded as exception');
   }
 
-  // update part quantities
   part.total_qty = (part.total_qty || 0) + qty;
   part.breakdown.on_hand_delivered_today = (part.breakdown.on_hand_delivered_today || 0) + qty;
   part.breakdown.available = Math.max(0, (part.breakdown.available||0) + qty);
-  part.status = 'ON_HAND';
+  part.status = 'ON_HAND_DELIVERED_TODAY';
   part.last_updated = new Date().toISOString();
 
-  // mark box item as processed (for demo: set delivered_qty=0)
   it.delivered_qty = 0;
   saveState(state);
   pushPending({action:'RECEIVE_BOX', part_id, qty, box_id});
@@ -469,14 +475,12 @@ function markMissingFromBox(part_id, box_id){
   saveState(state);
 }
 
-/* Damage report */
 function reportDamageFromBox(part_id, box_id){
   const photo = prompt('Photo URL (required for damage):','');
   if(!photo) return alert('Photo required for damage report (demo)');
   const rec = {id:'D-'+Date.now(), part_id, box_id, photo, timestamp:new Date().toISOString(), technician:state.technician_id};
   state.exceptions.push({type:'DAMAGED', ...rec});
   state.pending.push({type:'DAMAGE_REPORT', rec});
-  // update part status if exists
   const part = state.parts.find(p=>p.part_id===part_id);
   if(part){
     part.status='DAMAGED';
@@ -512,7 +516,6 @@ function showManualAdd(box_id){
     const qty = parseInt(document.getElementById('m_qty').value || '1',10);
     const price = document.getElementById('m_price').value.trim();
     const note = document.getElementById('m_note').value.trim();
-    // create manual exception and add to box as manual item
     const box = state.boxes.find(b=>b.box_id===box_id);
     if(!box) return alert('Box not found');
     box.items.push({part_id:pid, description: desc||'(manual)', wo_id:null, requested_qty:0, delivered_qty:qty, manual:true});
@@ -547,7 +550,6 @@ document.getElementById('syncBtn').addEventListener('click', ()=>{
   if(!(state.pending && state.pending.length>0)){ localStorage.setItem('lastSync', new Date().toLocaleString()); render(); showToast('Already synced'); return; }
   showToast('Syncing...');
   setTimeout(()=>{
-    // clear pending for demo
     state.pending = [];
     localStorage.setItem('lastSync', new Date().toLocaleString());
     saveState(state);
@@ -575,22 +577,13 @@ document.querySelectorAll('.tab').forEach(t=>{
   });
 });
 
-/* Box open from input */
+/* Box open from input: require valid Box ID */
 document.getElementById('fetchBox').addEventListener('click', ()=>{
   const id = document.getElementById('boxInput').value.trim();
   if(!id) return alert('Enter Box ID');
   const box = state.boxes.find(b=>b.box_id===id);
-  if(!box) return alert('Box not found in demo');
+  if(!box) return alert('Box not found or not ready. Contact Warehouse.');
   openBox(id);
-});
-
-/* Assigned boxes (just open list for demo) */
-document.getElementById('showAssigned').addEventListener('click', ()=>{
-  const html = document.createElement('div');
-  html.innerHTML = '<div style="margin-bottom:8px"><strong>Assigned Boxes</strong></div>' + (state.boxes.map(b=>`<div style="padding:8px;border-bottom:1px solid #f1f5f9"><strong>${b.box_id}</strong> • ${b.items.length} items • ${b.status}</div>`).join('') || '<div class="small muted">none</div>');
-  showModal(html);
-  // close on click outside
-  document.getElementById('modal').addEventListener('click', hideModal);
 });
 
 /* Modal helpers */
