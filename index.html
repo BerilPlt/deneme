@@ -1,407 +1,1329 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Van Stock & Reception — Updated View</title>
-  <style>
-    :root{
-      --bg:#f4f6f8; --card:#fff; --muted:#6b7280; --accent:#0b69ff;
-      --success:#16a34a; --warning:#f59e0b; --danger:#ef4444; --info:#0284c7;
-      --purple:#7c3aed; --chip-bg:#eef2ff;
-      font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:#0f172a;-webkit-font-smoothing:antialiased}
-    .app{max-width:980px;margin:18px auto;padding:18px;}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-    .title{font-size:20px;font-weight:700}
-    .meta{font-size:13px;color:var(--muted)}
-    .controls{display:flex;gap:10px;align-items:center}
-    .btn{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
-    .btn.secondary{background:#fff;border:1px solid #e6eefc;color:var(--muted);font-weight:600}
-    .tabs{display:flex;gap:8px;margin:12px 0}
-    .tab{padding:10px 14px;background:var(--card);border-radius:10px;cursor:pointer;border:1px solid transparent;font-weight:600}
-    .tab.active{border-color:#c7d2fe;background:linear-gradient(180deg,#fbfdff,#f7f9ff)}
-    .list{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 1px 2px rgba(15,23,42,0.04)}
-    .row{display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid #f1f5f9}
-    .row:last-child{border-bottom:none}
-    .part-id{font-weight:700;font-size:16px;color:#0b2545}
-    .desc{color:#334155;font-size:14px}
-    .value-chip{background:var(--chip-bg);padding:6px 10px;border-radius:8px;font-weight:700;color:var(--info);font-size:13px;min-width:48px;text-align:center}
-    .badge{padding:6px 10px;border-radius:999px;color:white;font-weight:700;font-size:13px}
-    .status-available{background:var(--success)} .status-onhand{background:var(--info)}
-    .status-allocated{background:var(--warning);color:#111} .status-reserved{background:var(--purple)}
-    .status-onorder{background:#64748b}
-    .link{color:var(--accent);text-decoration:none;cursor:pointer;font-weight:600}
-    .modal-overlay{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(2,6,23,0.55);display:flex;align-items:center;justify-content:center;z-index:999}
-    .modal{width:92%;max-width:760px;background:#fff;border-radius:10px;padding:18px;max-height:86vh;overflow:auto;box-shadow:0 10px 30px rgba(2,6,23,0.2)}
-    input, textarea, select{padding:10px;border-radius:8px;border:1px solid #e6eefc;font-size:14px;width:100%}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:720px){.grid{grid-template-columns:1fr}}
-    footer{margin-top:18px;font-size:13px;color:var(--muted);text-align:center}
-    .muted-block{color:var(--muted);font-size:13px;margin-top:6px}
-    .inline{display:flex;gap:8px;align-items:center}
-    .snackbar{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:8px;display:flex;gap:12px;align-items:center;z-index:1000}
-    .snackbar button{background:transparent;border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer}
-    .pendingCounter{background:#fff;border-radius:999px;padding:6px 10px;border:1px solid #e6eefc;font-weight:700;color:var(--muted)}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:6px 8px;text-align:left;border-bottom:1px solid #f1f5f9;font-size:13px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport="width=device-width, initial-scale=1.0">
+    <title>D365 FS Mobile - Van Stock & Reception</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3f2f1;
+            color: #323130;
+        }
+
+        /* Header */
+        header {
+            background: #0078d4;
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .pending-badge {
+            background: #d83b01;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #edebe9;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 14px;
+            text-align: center;
+            background: white;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #605e5c;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #0078d4;
+            border-bottom-color: #0078d4;
+        }
+
+        /* Search Bar */
+        .search-container {
+            padding: 12px 16px;
+            background: white;
+            border-bottom: 1px solid #edebe9;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #8a8886;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0078d4;
+        }
+
+        /* Page Content */
+        .page {
+            display: none;
+            padding: 16px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Van Stock List */
+        .part-list {
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .part-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid #edebe9;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .part-item:hover {
+            background: #f3f2f1;
+        }
+
+        .part-item:last-child {
+            border-bottom: none;
+        }
+
+        .part-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .part-id {
+            font-weight: 600;
+            font-size: 15px;
+            color: #323130;
+        }
+
+        .part-desc {
+            font-size: 13px;
+            color: #605e5c;
+            margin-bottom: 10px;
+        }
+
+        .chips-container {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .chip-label {
+            font-size: 9px;
+            font-weight: 400;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+
+        .chip-value {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .chip-available {
+            background: #dff6dd;
+            color: #107c10;
+        }
+
+        .chip-onhand {
+            background: #cfe4ff;
+            color: #004578;
+        }
+
+        .chip-allocated {
+            background: #fff4ce;
+            color: #8a5c00;
+        }
+
+        .chip-onorder {
+            background: #f3f2f1;
+            color: #323130;
+        }
+
+        /* Reception Page */
+        .box-input-section {
+            background: white;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .box-input-section h3 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: #323130;
+        }
+
+        .box-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .box-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #8a8886;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-primary {
+            background: #0078d4;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #106ebe;
+        }
+
+        .btn-primary:disabled {
+            background: #f3f2f1;
+            color: #a19f9d;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: #107c10;
+            color: white;
+            width: 100%;
+            padding: 14px;
+            font-size: 15px;
+            margin-top: 16px;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #0d6b0d;
+        }
+
+        .btn-success:disabled {
+            background: #f3f2f1;
+            color: #a19f9d;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: flex-end;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            width: 100%;
+            max-height: 90vh;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 16px;
+            border-bottom: 1px solid #edebe9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #faf9f8;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #323130;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #605e5c;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #605e5c;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            color: #323130;
+            padding: 8px 0;
+        }
+
+        .wo-list {
+            list-style: none;
+        }
+
+        .wo-item {
+            padding: 8px 12px;
+            background: #f3f2f1;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .wo-id {
+            font-weight: 600;
+            color: #0078d4;
+        }
+
+        .wo-date {
+            color: #605e5c;
+            font-size: 12px;
+        }
+
+        /* Box Items List */
+        .item-list {
+            list-style: none;
+        }
+
+        .item-row {
+            padding: 12px;
+            background: #faf9f8;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border: 1px solid #edebe9;
+        }
+
+        .item-row.manual {
+            border-left: 4px solid #0078d4;
+        }
+
+        .item-info {
+            margin-bottom: 10px;
+        }
+
+        .item-part-id {
+            font-weight: 600;
+            font-size: 14px;
+            color: #323130;
+        }
+
+        .item-desc {
+            font-size: 13px;
+            color: #605e5c;
+            margin-top: 2px;
+        }
+
+        .item-wo {
+            font-size: 12px;
+            color: #0078d4;
+            margin-top: 4px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 13px;
+            color: #323130;
+            cursor: pointer;
+        }
+
+        .photo-upload {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .photo-upload input[type="file"] {
+            font-size: 12px;
+        }
+
+        .photo-preview {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #edebe9;
+        }
+
+        .manual-tag {
+            background: #0078d4;
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .btn-add-manual {
+            background: white;
+            color: #0078d4;
+            border: 1px dashed #0078d4;
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .btn-add-manual:hover {
+            background: #f3f2f1;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #323130;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #8a8886;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Snackbar */
+        .snackbar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #323130;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .snackbar.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .snackbar-message {
+            font-size: 14px;
+        }
+
+        .btn-undo {
+            background: #0078d4;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #605e5c;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        /* Alert Message */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .alert-error {
+            background: #fde7e9;
+            color: #a4262c;
+            border-left: 4px solid #a4262c;
+        }
+
+        .alert-success {
+            background: #dff6dd;
+            color: #107c10;
+            border-left: 4px solid #107c10;
+        }
+    </style>
 </head>
 <body>
-  <div class="app" id="app">
+    <!-- Header -->
     <header>
-      <div>
-        <div class="title">Van Stock & Reception</div>
-        <div class="meta">Technician: T1 • Location: Berlin</div>
-      </div>
-      <div class="controls">
-        <div class="pendingCounter" id="pendingCount">Pending: 0</div>
-        <div class="meta" id="lastSync">Last sync: —</div>
-        <button class="btn" id="syncBtn">Sync</button>
-        <button class="btn secondary" id="resetBtn">Reset</button>
-      </div>
+        <h1>Field Service Mobile</h1>
+        <div class="pending-badge" id="pendingBadge">Pending: 0</div>
     </header>
 
-    <div class="tabs" role="tablist">
-      <div class="tab active" data-tab="van" id="tabVan">Van Stock</div>
-      <div class="tab" data-tab="reception" id="tabRec">Reception</div>
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('vanStock')">Van Stock</button>
+        <button class="tab" onclick="switchTab('reception')">Reception</button>
     </div>
 
-    <main id="content">
-      <section id="view-van">
-        <div class="list" style="margin-bottom:12px;display:flex;gap:12px;align-items:center;">
-          <input id="searchInput" type="text" placeholder="Search Part ID or Description" style="flex:1" />
-          <select id="filterSelect" style="width:160px">
-            <option value="all">All</option>
-            <option value="available">Available</option>
-            <option value="onhand">On Hand</option>
-            <option value="allocated">Allocated</option>
-            <option value="onorder">On Order</option>
-          </select>
+    <!-- Van Stock Page -->
+    <div id="vanStockPage" class="page active">
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Search parts..." id="vanSearchInput">
         </div>
+        <div id="partListContainer"></div>
+    </div>
 
-        <div class="list" id="vanList" aria-live="polite"></div>
-      </section>
-
-      <section id="view-reception" style="display:none;">
-        <div class="list" style="margin-bottom:12px;padding:12px;">
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input type="text" id="boxInput" placeholder="Enter or scan Box ID (e.g. BOX123)" />
-            <button class="btn" id="fetchBox">Confirm Box</button>
-            <div style="margin-left:auto" class="small muted">Box ID required</div>
-          </div>
+    <!-- Reception Page -->
+    <div id="receptionPage" class="page">
+        <div class="box-input-section">
+            <h3>Scan or Enter Box ID</h3>
+            <div class="box-input-group">
+                <input type="text" class="box-input" placeholder="Box ID" id="boxIdInput">
+                <button class="btn btn-primary" onclick="confirmBox()">Confirm Box</button>
+            </div>
         </div>
-        <div id="boxArea" class="list"><div class="muted-block">Confirm a Box ID to open a popup with box contents.</div></div>
-      </section>
-    </main>
+        <div id="receptionContent"></div>
+        <button class="btn btn-success" id="submitReceptionBtn" disabled onclick="submitReception()">
+            Submit Reception
+        </button>
+    </div>
 
-    <footer>Prototype (Dynamics 365 Field Service Mobile compatible UI)</footer>
-  </div>
+    <!-- Part Details Modal -->
+    <div class="modal-overlay" id="partDetailsModal" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="partDetailsTitle">Part Details</h2>
+                <button class="modal-close" onclick="closeModal('partDetailsModal')" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body" id="partDetailsBody"></div>
+        </div>
+    </div>
 
-  <div id="modalRoot" style="display:none"></div>
-  <div id="snackbar" class="snackbar" style="display:none"><div id="snackMsg">Action performed</div><button id="undoBtn">Undo</button><button id="closeSnack" style="background:transparent;border:none;color:#fff;opacity:0.8">✕</button></div>
+    <!-- Box Contents Modal -->
+    <div class="modal-overlay" id="boxContentsModal" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="boxContentsTitle">Box Contents</h2>
+                <button class="modal-close" onclick="closeModal('boxContentsModal')" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body" id="boxContentsBody"></div>
+        </div>
+    </div>
 
-<script>
-/* Updated prototype focusing on:
-   - Part row shows only numeric chips: Available, On Hand, Allocated, On Order
-   - Details modal: On Order shows only qty & ETA; Available & On Hand show multiple linked WOs
-   - Keep reception modal behavior & validation
-*/
+    <!-- Manual Add Item Modal -->
+    <div class="modal-overlay" id="manualAddModal" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Manual Item</h2>
+                <button class="modal-close" onclick="closeModal('manualAddModal')" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="manualAddForm" onsubmit="submitManualItem(event)">
+                    <div class="form-group">
+                        <label for="manualPartId">Part ID *</label>
+                        <input type="text" id="manualPartId" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="manualDescription">Description *</label>
+                        <input type="text" id="manualDescription" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="manualQty">Quantity *</label>
+                        <input type="number" id="manualQty" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="manualNote">Note</label>
+                        <textarea id="manualNote"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;">Add Item</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
-const SAMPLE = {
-  technician_id: "T1",
-  parts: [
-    { part_id:"00248240", description:"Cable", breakdown:{available:2,on_hand:1,allocated:0}, on_orders:[{order_id:"O-1001",outstanding_qty:1,eta:"2026-06-22"},{order_id:"O-1003",outstanding_qty:1,eta:"2026-07-01"}], price:{amount:12.5,currency:"EUR",incl_vat:true}, status:"ON_HAND", linked_WOs:[{wo_id:"WO123",booking_date:"2026-06-01"},{wo_id:"WO130",booking_date:"2026-06-05"}]},
-    { part_id:"0008045", description:"Motor", breakdown:{available:0,on_hand:0,allocated:1}, on_orders:[], price:{amount:85.0,currency:"EUR",incl_vat:true}, status:"ALLOCATED", linked_WOs:[{wo_id:"WO200",booking_date:"2026-06-03"}]},
-    { part_id:"00169216", description:"Fan", breakdown:{available:1,on_hand:0,allocated:0}, on_orders:[{order_id:"O-2002",outstanding_qty:2,eta:"2026-06-27"}], price:{amount:45.0,currency:"EUR",incl_vat:true}, status:"AVAILABLE", linked_WOs:[]}
-  ],
-  boxes: [
-    { box_id:"BOX123", shipment_date:"2026-06-01T07:30:00Z", delivered_by:"WH-DE", status:"UNCONFIRMED", items:[
-      { part_id:"00248240", description:"Cable", wo_id:"WO123", delivered_qty:1, requested_qty:1 },
-      { part_id:"00169216", description:"Fan", wo_id:"WO124", delivered_qty:0, requested_qty:1 },
-      { part_id:"P-UNKNOWN", description:"Unknown extra", wo_id:null, delivered_qty:1, requested_qty:0 }
-    ] }
-  ],
-  pending: [],
-  exceptions: [],
-  opsTickets: []
-};
+    <!-- Missing Confirmation Modal -->
+    <div class="modal-overlay" id="missingConfirmModal" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirm Missing Item</h2>
+                <button class="modal-close" onclick="closeModal('missingConfirmModal')" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 16px; color: #605e5c;">
+                    Mark item <strong id="missingItemName"></strong> as missing?
+                </p>
+                <div class="form-group">
+                    <label for="missingReason">Reason *</label>
+                    <select id="missingReason" required>
+                        <option value="">Select reason</option>
+                        <option value="not_in_box">Not in box</option>
+                        <option value="wrong_item">Wrong item delivered</option>
+                        <option value="short_shipment">Short shipment</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="missingNote">Note</label>
+                    <textarea id="missingNote" placeholder="Additional details..."></textarea>
+                </div>
+                <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="confirmMissing()">
+                    Confirm Missing
+                </button>
+            </div>
+        </div>
+    </div>
 
-const LS_KEY = "van_v8";
-function loadState(){ const raw=localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw); localStorage.setItem(LS_KEY,JSON.stringify(SAMPLE)); return JSON.parse(localStorage.getItem(LS_KEY)); }
-function saveState(s){ localStorage.setItem(LS_KEY,JSON.stringify(s)); updatePendingCount(); }
+    <!-- Snackbar -->
+    <div class="snackbar" id="snackbar">
+        <span class="snackbar-message" id="snackbarMessage"></span>
+        <button class="btn-undo" id="undoBtn">UNDO</button>
+    </div>
 
-let state = loadState();
-let undoTimer = null;
+    <script>
+        // ========================================
+        // DATA STORE
+        // ========================================
+        
+        const PARTS_DATA = [
+            {
+                id: '00248240',
+                description: 'Cable Assembly - Power Distribution',
+                available: 12,
+                onHand: 15,
+                allocated: 3,
+                onOrder: 25,
+                availableWOs: [
+                    { woId: 'WO-2024-001', bookingDate: '2024-01-15' },
+                    { woId: 'WO-2024-003', bookingDate: '2024-01-18' }
+                ],
+                onHandWOs: [
+                    { woId: 'WO-2024-001', bookingDate: '2024-01-15' },
+                    { woId: 'WO-2024-003', bookingDate: '2024-01-18' },
+                    { woId: 'WO-2024-007', bookingDate: '2024-01-22' }
+                ],
+                onOrderDetails: { qty: 25, eta: '2024-02-10' }
+            },
+            {
+                id: '0008045',
+                description: 'Electric Motor 3-Phase 5HP',
+                available: 3,
+                onHand: 5,
+                allocated: 2,
+                onOrder: 10,
+                availableWOs: [
+                    { woId: 'WO-2024-005', bookingDate: '2024-01-20' }
+                ],
+                onHandWOs: [
+                    { woId: 'WO-2024-005', bookingDate: '2024-01-20' },
+                    { woId: 'WO-2024-009', bookingDate: '2024-01-25' }
+                ],
+                onOrderDetails: { qty: 10, eta: '2024-02-05' }
+            },
+            {
+                id: '00169216',
+                description: 'Cooling Fan Assembly 12V',
+                available: 8,
+                onHand: 8,
+                allocated: 0,
+                onOrder: 0,
+                availableWOs: [],
+                onHandWOs: [],
+                onOrderDetails: null
+            },
+            {
+                id: '00452301',
+                description: 'Hydraulic Pump HP-200',
+                available: 0,
+                onHand: 2,
+                allocated: 2,
+                onOrder: 15,
+                availableWOs: [],
+                onHandWOs: [
+                    { woId: 'WO-2024-012', bookingDate: '2024-01-28' }
+                ],
+                onOrderDetails: { qty: 15, eta: '2024-02-15' }
+            }
+        ];
 
-function render(){ document.getElementById('lastSync').innerText = "Last sync: " + (localStorage.getItem('lastSync') || '—'); renderVanList(); renderBoxMessage(); updatePendingCount(); }
-function updatePendingCount(){ const el=document.getElementById('pendingCount'); const n= state.pending ? state.pending.length : 0; el.innerText = `Pending: ${n}`; saveState(state); }
+        const BOX_DATA = {
+            'BOX123': {
+                id: 'BOX123',
+                items: [
+                    { partId: '00248240', description: 'Cable Assembly - Power Distribution', woId: 'WO-2024-001', requested: 5, delivered: 5 },
+                    { partId: '0008045', description: 'Electric Motor 3-Phase 5HP', woId: 'WO-2024-005', requested: 2, delivered: 1 },
+                    { partId: '00169216', description: 'Cooling Fan Assembly 12V', woId: null, requested: 3, delivered: 3 }
+                ]
+            },
+            'BOX456': {
+                id: 'BOX456',
+                items: [
+                    { partId: '00452301', description: 'Hydraulic Pump HP-200', woId: 'WO-2024-012', requested: 1, delivered: 1 }
+                ]
+            }
+        };
 
-function renderVanList(){
-  const container = document.getElementById('vanList'); container.innerHTML='';
-  const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  const filter = document.getElementById('filterSelect').value;
-  state.parts.forEach(p=>{
-    if(q && !(p.part_id.toLowerCase().includes(q) || p.description.toLowerCase().includes(q))) return;
-    if(filter==='available' && p.breakdown.available<=0) return;
-    if(filter==='onhand' && p.breakdown.on_hand<=0) return;
-    if(filter==='allocated' && p.breakdown.allocated<=0) return;
-    if(filter==='onorder' && (!p.on_orders || p.on_orders.length===0)) return;
-    const row = document.createElement('div'); row.className='row';
-    row.innerHTML = `
-      <div style="flex:0 0 320px">
-        <div class="part-id">${p.part_id}</div>
-        <div class="desc">${p.description}</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <div class="value-chip" title="Available">${p.breakdown.available}</div>
-        <div class="value-chip" title="On Hand">${p.breakdown.on_hand}</div>
-        <div class="value-chip" title="Allocated">${p.breakdown.allocated}</div>
-        <div class="value-chip" title="On Order">${(p.on_orders||[]).reduce((a,o)=>a+o.outstanding_qty,0)}</div>
-      </div>
-      <div style="margin-left:auto;text-align:right">
-        <div style="margin-bottom:6px">${renderStatus(p)}</div>
-        <div><a class="link" data-id="${p.part_id}">Details</a></div>
-      </div>`;
-    container.appendChild(row);
-  });
-  container.querySelectorAll('.link').forEach(a=>a.addEventListener('click', ()=> openPartDetail(a.getAttribute('data-id'))));
-}
+        // ========================================
+        // STATE MANAGEMENT
+        // ========================================
+        
+        let currentTab = 'vanStock';
+        let filteredParts = [...PARTS_DATA];
+        let currentBoxId = null;
+        let boxItems = [];
+        let pendingQueue = JSON.parse(localStorage.getItem('pendingQueue') || '[]');
+        let lastAction = null;
+        let snackbarTimeout = null;
+        let searchDebounce = null;
+        let currentMissingItem = null;
 
-function renderStatus(p){
-  if(p.status==='AVAILABLE') return `<span class="badge status-available">Available</span>`;
-  if(p.status==='ON_HAND') return `<span class="badge status-onhand">On Hand</span>`;
-  if(p.status==='ALLOCATED') return `<span class="badge status-allocated">Allocated</span>`;
-  if(p.status==='VAN_RESERVED') return `<span class="badge status-reserved">Van reserved</span>`;
-  return `<span class="badge status-onorder">On Order</span>`;
-}
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+        
+        function init() {
+            renderPartList();
+            updatePendingBadge();
+            setupEventListeners();
+        }
 
-function openPartDetail(partId){
-  const p = state.parts.find(x=>x.part_id===partId); if(!p) return;
-  const root = document.getElementById('modalRoot'); root.innerHTML=''; const overlay = document.createElement('div'); overlay.className='modal-overlay';
-  const modal = document.createElement('div'); modal.className='modal';
-  let html = `<div style="display:flex;justify-content:space-between;align-items:center"><div class="panel-title">${p.part_id} — ${p.description}</div><div><button class="action" id="closeDetail">Close</button></div></div>`;
-  html += `<div style="display:grid;gap:12px;margin-top:12px">`;
-  // Available with linked WOs list (multiple)
-  html += `<div><strong>Available: </strong><span class="value-chip">${p.breakdown.available}</span>`;
-  if(p.linked_WOs && p.linked_WOs.length>0){
-    html += `<div class="small muted" style="margin-top:6px">Linked Work Orders (Available):</div><div style="margin-top:6px">`;
-    p.linked_WOs.forEach(w=>{
-      html += `<div style="padding:6px;border-radius:6px;background:#f8fafc;margin-bottom:6px;font-size:13px">${w.wo_id} • ${w.booking_date}</div>`;
-    });
-    html += `</div>`;
-  }
-  html += `</div>`;
-  // On Hand with linked WOs (multiple) or note if none
-  html += `<div><strong>On Hand: </strong><span class="value-chip">${p.breakdown.on_hand}</span>`;
-  if(p.linked_WOs && p.linked_WOs.length>0){
-    html += `<div class="small muted" style="margin-top:6px">Linked Work Orders (On Hand):</div><div style="margin-top:6px">`;
-    p.linked_WOs.forEach(w=>{
-      html += `<div style="padding:6px;border-radius:6px;background:#f8fafc;margin-bottom:6px;font-size:13px">${w.wo_id} • ${w.booking_date}</div>`;
-    });
-    html += `</div>`;
-  } else {
-    html += `<div class="small muted" style="margin-top:6px">Received via Reception (no linked Work Order)</div>`;
-  }
-  html += `</div>`;
-  // Allocated simple display
-  html += `<div><strong>Allocated: </strong><span class="value-chip">${p.breakdown.allocated}</span>`;
-  if(p.status==='ALLOCATED' && p.linked_WOs && p.linked_WOs.length>0){
-    html += `<div class="small muted" style="margin-top:6px">Allocated to: ${p.linked_WOs.map(w=>w.wo_id+' ('+w.booking_date+')').join(', ')}</div>`;
-  }
-  html += `</div>`;
-  // On Order: only qty + ETA info
-  html += `<div><strong>On Order</strong>`;
-  if(p.on_orders && p.on_orders.length>0){
-    html += `<table style="margin-top:6px"><thead><tr><th>Qty</th><th>ETA</th></tr></thead><tbody>`;
-    p.on_orders.slice().sort((a,b)=>new Date(a.eta)-new Date(b.eta)).forEach(o=>{
-      html += `<tr><td>${o.outstanding_qty}</td><td>${formatDate(o.eta)}</td></tr>`;
-    });
-    html += `</tbody></table>`;
-  } else html += `<div class="small muted" style="margin-top:6px">No on orders</div>`;
-  html += `</div></div>`;
-  html += `<div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="closeDetail2">Close</button>${p.breakdown.on_hand>0 ? '<button class="btn secondary" id="openRec">Open Reception</button>' : ''}</div>`;
+        function setupEventListeners() {
+            // Search debounce
+            document.getElementById('vanSearchInput').addEventListener('input', (e) => {
+                clearTimeout(searchDebounce);
+                searchDebounce = setTimeout(() => {
+                    filterParts(e.target.value);
+                }, 300);
+            });
 
-  modal.innerHTML = html; overlay.appendChild(modal); root.appendChild(overlay); root.style.display='block';
-  document.getElementById('closeDetail').addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; });
-  document.getElementById('closeDetail2').addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; });
-  const rbtn = document.getElementById('openRec'); if(rbtn) rbtn.addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; switchTab('reception'); document.getElementById('boxInput').focus(); });
-}
+            // ESC key to close modals
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeAllModals();
+                }
+            });
 
-/* Reception */
-document.getElementById('fetchBox').addEventListener('click', ()=>{
-  const id = document.getElementById('boxInput').value.trim(); if(!id) return alert('Enter Box ID');
-  const box = state.boxes.find(b=>b.box_id===id); if(!box) return alert('Box not found (demo)');
-  openBoxModal(id);
-});
+            // Click outside modal to close
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        closeModal(overlay.id);
+                    }
+                });
+            });
+        }
 
-function openBoxModal(boxId){
-  const box = state.boxes.find(b=>b.box_id===boxId); if(!box) return;
-  const root = document.getElementById('modalRoot'); root.innerHTML=''; const overlay = document.createElement('div'); overlay.className='modal-overlay';
-  const modal = document.createElement('div'); modal.className='modal';
-  let html = `<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:800">${box.box_id}</div><div class="small muted">${box.delivered_by} • ${new Date(box.shipment_date).toLocaleString()}</div></div><div><button class="action" id="closeBoxModal">Close</button></div></div>`;
-  html += `<div id="boxItemsArea" style="margin-top:12px"></div>`;
-  html += `<div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="submitBox">Submit</button><button class="btn secondary" id="manualAddBtn">Add manual item</button></div>`;
-  modal.innerHTML = html; overlay.appendChild(modal); root.appendChild(overlay); root.style.display='block';
-  document.getElementById('closeBoxModal').addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; });
-  document.getElementById('manualAddBtn').addEventListener('click', ()=> showManualAddModal(box.box_id));
-  renderBoxItemsInModal(box);
-  document.getElementById('submitBox').addEventListener('click', ()=> { submitBox(box.box_id); root.style.display='none'; root.innerHTML=''; });
-}
+        // ========================================
+        // TAB SWITCHING
+        // ========================================
+        
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Page').classList.add('active');
+        }
 
-function renderBoxItemsInModal(box){
-  const area = document.getElementById('boxItemsArea'); area.innerHTML='';
-  box.items.forEach((it, idx)=>{
-    const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.padding='10px 0'; row.style.borderBottom='1px solid #f1f5f9';
-    row.innerHTML = `<div>
-        <div class="part-id">${it.part_id}${it.manual? ' • Manual':''}</div>
-        <div class="desc">${it.description}</div>
-        ${ it.wo_id ? `<div class="small muted">WO: ${it.wo_id}</div>` : `<div class="small muted">No linked Work Order</div>`}
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-        <div class="inline"><label><input type="checkbox" data-idx="${idx}" class="missingChk"> Missing</label></div>
-        <div class="inline"><label><input type="checkbox" data-idx="${idx}" class="damageChk"> Damaged</label></div>
-        <div style="display:none" id="photoArea-${idx}"><input type="file" accept="image/*" id="photoInput-${idx}"></div>
-      </div>`;
-    area.appendChild(row);
-  });
-  area.querySelectorAll('.damageChk').forEach(chk=> chk.addEventListener('change', (e)=>{ const idx=e.target.getAttribute('data-idx'); document.getElementById('photoArea-'+idx).style.display = e.target.checked ? 'block':'none'; }));
-}
+        // ========================================
+        // VAN STOCK - PART LIST
+        // ========================================
+        
+        function filterParts(searchTerm) {
+            const term = searchTerm.toLowerCase().trim();
+            if (!term) {
+                filteredParts = [...PARTS_DATA];
+            } else {
+                filteredParts = PARTS_DATA.filter(p => 
+                    p.id.toLowerCase().includes(term) || 
+                    p.description.toLowerCase().includes(term)
+                );
+            }
+            renderPartList();
+        }
 
-/* Manual add modal (keeps existing behavior) */
-function showManualAddModal(box_id){
-  const root=document.getElementById('modalRoot'); root.innerHTML=''; const overlay=document.createElement('div'); overlay.className='modal-overlay';
-  const modal=document.createElement('div'); modal.className='modal';
-  modal.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div class="panel-title">Add manual item to ${box_id}</div><div><button class="action" id="closeManual">Close</button></div></div>
-    <div style="display:grid;gap:8px;margin-top:8px"><input id="m_part" placeholder="Part ID (scan or type)"><input id="m_desc" placeholder="Description (optional)"><input id="m_qty" type="number" value="1" min="1"><textarea id="m_note" placeholder="Note (optional)"></textarea>
-    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="m_add">Add</button><button class="btn secondary" id="m_cancel">Cancel</button></div></div>`;
-  overlay.appendChild(modal); root.appendChild(overlay); root.style.display='block';
-  document.getElementById('closeManual').addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; });
-  document.getElementById('m_cancel').addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; });
-  document.getElementById('m_add').addEventListener('click', ()=>{
-    const pid=document.getElementById('m_part').value.trim(); if(!pid) return alert('Part ID required');
-    const desc=document.getElementById('m_desc').value.trim()||'(manual)'; const qty=parseInt(document.getElementById('m_qty').value||'1',10); const note=document.getElementById('m_note').value.trim();
-    const box = state.boxes.find(b=>b.box_id===box_id); if(!box) return alert('Box missing');
-    box.items.push({part_id:pid, description:desc, wo_id:null, delivered_qty:qty, requested_qty:0, manual:true});
-    const ex={id:'EX-'+Date.now(), type:'MANUAL_ADD', part_id:pid, qty, note, box_id, technician:state.technician_id, ts:new Date().toISOString()};
-    state.exceptions.push(ex); state.pending.push({type:'MANUAL_ADD', ex});
-    saveState(state); root.style.display='none'; root.innerHTML=''; openBoxModal(box_id);
-  });
-}
+        function renderPartList() {
+            const container = document.getElementById('partListContainer');
+            
+            if (filteredParts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <p>No parts found</p>
+                    </div>
+                `;
+                return;
+            }
 
-/* Missing modal (two-step) */
-function createMissingReport(part_id, box_id){
-  const root=document.getElementById('modalRoot'); root.innerHTML=''; const overlay=document.createElement('div'); overlay.className='modal-overlay';
-  const modal=document.createElement('div'); modal.className='modal';
-  modal.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div class="panel-title">Confirm Missing — ${part_id}</div><div><button class="action" id="closeMiss">Close</button></div></div>
-    <div style="display:grid;gap:8px;margin-top:8px">
-      <label>Reason</label>
-      <select id="miss_reason">
-        <option value="not_in_box">Not in box</option>
-        <option value="damaged_in_transit">Damaged in transit</option>
-        <option value="wrong_item">Wrong item</option>
-        <option value="other">Other</option>
-      </select>
-      <textarea id="miss_note" placeholder="Optional note"></textarea>
-      <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="confirmMissBtn">Confirm Missing</button><button class="btn secondary" id="cancelMissBtn">Cancel</button></div>
-    </div>`;
-  overlay.appendChild(modal); root.appendChild(overlay); root.style.display='block';
-  document.getElementById('closeMiss').addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; });
-  document.getElementById('cancelMissBtn').addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; });
-  document.getElementById('confirmMissBtn').addEventListener('click', ()=>{
-    const reason=document.getElementById('miss_reason').value; const note=document.getElementById('miss_note').value.trim();
-    const rec={id:'M-'+Date.now(), part_id, box_id, reason, note, technician:state.technician_id, ts:new Date().toISOString()};
-    state.exceptions.push({type:'MISSING', ...rec});
-    const ops = { ticket_id: 'OPS-'+Date.now(), type:'RECONCILE_MISSING', part_id, box_id, reason, note, created_at:new Date().toISOString() };
-    state.opsTickets.push(ops);
-    state.pending.push({type:'MISSING_REPORT', rec});
-    saveState(state);
-    root.style.display='none'; root.innerHTML='';
-    showUndo('Missing reported', ()=>{ const idx = state.exceptions.findIndex(x=>x.id===rec.id); if(idx>=0) state.exceptions.splice(idx,1); const pidx = state.pending.findIndex(p=>p.type==='MISSING_REPORT' && p.rec && p.rec.id===rec.id); if(pidx>=0) state.pending.splice(pidx,1); const otidx = state.opsTickets.findIndex(t=>t.ticket_id===ops.ticket_id); if(otidx>=0) state.opsTickets.splice(otidx,1); saveState(state); render(); });
-  });
-}
+            const html = `
+                <div class="part-list">
+                    ${filteredParts.map(part => `
+                        <div class="part-item" onclick="openPartDetails('${part.id}')">
+                            <div class="part-header">
+                                <div>
+                                    <div class="part-id">${part.id}</div>
+                                </div>
+                            </div>
+                            <div class="part-desc">${part.description}</div>
+                            <div class="chips-container">
+                                <div class="chip chip-available">
+                                    <span class="chip-label">Available</span>
+                                    <span class="chip-value">${part.available}</span>
+                                </div>
+                                <div class="chip chip-onhand">
+                                    <span class="chip-label">On Hand</span>
+                                    <span class="chip-value">${part.onHand}</span>
+                                </div>
+                                <div class="chip chip-allocated">
+                                    <span class="chip-label">Allocated</span>
+                                    <span class="chip-value">${part.allocated}</span>
+                                </div>
+                                <div class="chip chip-onorder">
+                                    <span class="chip-label">On Order</span>
+                                    <span class="chip-value">${part.onOrder}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
 
-/* Submit box with validation for damaged file presence */
-function submitBox(box_id){
-  const box = state.boxes.find(b=>b.box_id===box_id); if(!box) return;
-  const area = document.getElementById('boxItemsArea'); const items = box.items;
-  const payload={box_id:box.box_id, technician_id:state.technician_id, items:[]};
-  // find damaged inputs and read files async
-  for(let i=0;i<items.length;i++){
-    const it=items[i];
-    const missChk = area.querySelector(`input.missingChk[data-idx="${i}"]`);
-    const dmgChk = area.querySelector(`input.damageChk[data-idx="${i}"]`);
-    if(dmgChk && dmgChk.checked){
-      const fileInput = document.getElementById('photoInput-'+i);
-      if(!fileInput || !fileInput.files || fileInput.files.length===0){ alert('Photo required for damaged items'); return; }
-      const file = fileInput.files[0];
-      const reader = new FileReader();
-      reader.onload = function(e){
-        const dataUrl = e.target.result;
-        const rec={id:'D-'+Date.now(), part_id:it.part_id, box_id:box.box_id, photo:dataUrl, technician:state.technician_id, ts:new Date().toISOString()};
-        state.exceptions.push({type:'DAMAGED', ...rec});
-        state.pending.push({type:'DAMAGED', rec});
-        payload.items.push({part_id:it.part_id, action:'DAMAGED', photos:[dataUrl], manual_entry:!!it.manual});
-        finalizeSubmit(box, payload);
-      };
-      reader.readAsDataURL(file);
-      return; // async handled in onload
-    } else if(missChk && missChk.checked){
-      payload.items.push({part_id:it.part_id, action:'MISSING', manual_entry:!!it.manual});
-    } else {
-      payload.items.push({part_id:it.part_id, action:'RECEIVED', manual_entry:!!it.manual});
-      let part = state.parts.find(p=>p.part_id===it.part_id);
-      if(!part){ part = {part_id:it.part_id, description:it.description||'(manual)', breakdown:{available:0,on_hand:0,allocated:0}, on_orders:[], price:{amount:0,currency:'EUR',incl_vat:true}, status:'ON_HAND'}; state.parts.push(part); }
-      part.breakdown.on_hand = (part.breakdown.on_hand||0) + (it.delivered_qty||0);
-      part.breakdown.available = (part.breakdown.available||0) + (it.delivered_qty||0);
-      part.status = 'ON_HAND';
-    }
-  }
-  finalizeSubmit(box, payload);
-}
+        // ========================================
+        // VAN STOCK - PART DETAILS MODAL
+        // ========================================
+        
+        function openPartDetails(partId) {
+            const part = PARTS_DATA.find(p => p.id === partId);
+            if (!part) return;
 
-function finalizeSubmit(box, payload){
-  state.pending.push({type:'DELIVERY_CONFIRM', payload, ts:new Date().toISOString()});
-  box.status='CONFIRMED'; saveState(state);
-  showUndo('Box submitted', ()=>{ const idx = state.pending.map(p=>p.type).lastIndexOf('DELIVERY_CONFIRM'); if(idx>=0) state.pending.splice(idx,1); box.status='UNCONFIRMED'; saveState(state); render(); });
-  render();
-}
+            document.getElementById('partDetailsTitle').textContent = `Part ${part.id}`;
+            
+            let bodyHtml = `
+                <div class="detail-section">
+                    <h4>Description</h4>
+                    <div class="detail-value">${part.description}</div>
+                </div>
+            `;
 
-/* Undo and snackbar */
-function showUndo(message, undoFn){
-  const snack=document.getElementById('snackbar'); document.getElementById('snackMsg').innerText = message; snack.style.display='flex';
-  const undoBtn=document.getElementById('undoBtn'); const closeBtn=document.getElementById('closeSnack');
-  undoBtn.onclick = ()=>{ if(undoTimer) clearTimeout(undoTimer); snack.style.display='none'; undoFn(); };
-  closeBtn.onclick = ()=>{ if(undoTimer) clearTimeout(undoTimer); snack.style.display='none'; };
-  if(undoTimer) clearTimeout(undoTimer);
-  undoTimer = setTimeout(()=>{ snack.style.display='none'; undoTimer=null; }, 8000);
-}
+            // Available section with WOs
+            if (part.available > 0) {
+                bodyHtml += `
+                    <div class="detail-section">
+                        <h4>Available (${part.available})</h4>
+                        ${part.availableWOs.length > 0 ? `
+                            <ul class="wo-list">
+                                ${part.availableWOs.map(wo => `
+                                    <li class="wo-item">
+                                        <span class="wo-id">${wo.woId}</span>
+                                        <div class="wo-date">Booking: ${wo.bookingDate}</div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : '<div class="detail-value">No linked work orders</div>'}
+                    </div>
+                `;
+            }
 
-/* Sync & reset */
-document.getElementById('syncBtn').addEventListener('click', ()=>{
-  if(!(state.pending && state.pending.length>0)){ localStorage.setItem('lastSync', new Date().toLocaleString()); render(); showToast('Already synced'); return; }
-  showToast('Syncing...'); setTimeout(()=>{ state.pending=[]; localStorage.setItem('lastSync', new Date().toLocaleString()); saveState(state); render(); showToast('Sync complete'); },900);
-});
-document.getElementById('resetBtn').addEventListener('click', ()=>{ if(!confirm('Reset demo?')) return; localStorage.removeItem(LS_KEY); state=loadState(); render(); });
+            // On Hand section with WOs
+            if (part.onHand > 0) {
+                bodyHtml += `
+                    <div class="detail-section">
+                        <h4>On Hand (${part.onHand})</h4>
+                        ${part.onHandWOs.length > 0 ? `
+                            <ul class="wo-list">
+                                ${part.onHandWOs.map(wo => `
+                                    <li class="wo-item">
+                                        <span class="wo-id">${wo.woId}</span>
+                                        <div class="wo-date">Booking: ${wo.bookingDate}</div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : '<div class="detail-value">No linked work orders</div>'}
+                    </div>
+                `;
+            }
 
-/* Search debounce */
-let searchTimer = null;
-document.getElementById('searchInput').addEventListener('input', ()=>{
-  if(searchTimer) clearTimeout(searchTimer);
-  searchTimer = setTimeout(()=>{ renderVanList(); }, 300);
-});
-document.getElementById('filterSelect').addEventListener('change', render);
+            // On Order section - only qty and ETA
+            if (part.onOrder > 0 && part.onOrderDetails) {
+                bodyHtml += `
+                    <div class="detail-section">
+                        <h4>On Order</h4>
+                        <div class="detail-value">Quantity: ${part.onOrderDetails.qty}</div>
+                        <div class="detail-value">ETA: ${part.onOrderDetails.eta}</div>
+                    </div>
+                `;
+            }
 
-function formatDate(d){ if(!d) return ''; const dt=new Date(d); return dt.toLocaleDateString(); }
-function showToast(msg){ alert(msg); } // simple for demo
+            document.getElementById('partDetailsBody').innerHTML = bodyHtml;
+            openModal('partDetailsModal');
+        }
 
-function switchTab(tab){ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active'); document.getElementById('view-van').style.display = tab==='van' ? '' : 'none'; document.getElementById('view-reception').style.display = tab==='reception' ? '' : 'none'; }
-document.getElementById('tabVan').addEventListener('click', ()=> switchTab('van'));
-document.getElementById('tabRec').addEventListener('click', ()=> switchTab('reception'));
+        // ========================================
+        // RECEPTION - BOX CONFIRMATION
+        // ========================================
+        
+        function confirmBox() {
+            const boxId = document.getElementById('boxIdInput').value.trim();
+            
+            if (!boxId) {
+                alert('Please enter a Box ID');
+                return;
+            }
 
-render();
-</script>
+            const box = BOX_DATA[boxId];
+            if (!box) {
+                alert('Box not found: ' + boxId);
+                return;
+            }
+
+            currentBoxId = boxId;
+            boxItems = box.items.map((item, idx) => ({
+                ...item,
+                id: `ITEM-${Date.now()}-${idx}`,
+                missing: false,
+                damaged: false,
+                photo: null,
+                manual: false
+            }));
+
+            document.getElementById('submitReceptionBtn').disabled = false;
+            openBoxContentsModal();
+        }
+
+        // ========================================
+        // RECEPTION - BOX CONTENTS MODAL
+        // ========================================
+        
+        function openBoxContentsModal() {
+            document.getElementById('boxContentsTitle').textContent = `Box ${currentBoxId}`;
+            renderBoxContents();
+            openModal('boxContentsModal');
+        }
+
+        function renderBoxContents() {
+            const container = document.getElementById('boxContentsBody');
+            
+            let html = '<ul class="item-list">';
+            
+            boxItems.forEach(item => {
+                html += `
+                    <li class="item-row ${item.manual ? 'manual' : ''}">
+                        <div class="item-info">
+                            <div class="item-part-id">
+                                ${item.partId}
+                                ${item.manual ? '<span class="manual-tag">MANUAL</span>' : ''}
+                            </div>
+                            <div class="item-desc">${item.description}</div>
+                            ${item.woId ? `<div class="item-wo">WO: ${item.woId}</div>` : ''}
+                        </div>
+                        <div class="item-actions">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="missing-${item.id}" 
+                                       onchange="toggleMissing('${item.id}')" 
+                                       ${item.missing ? 'checked' : ''}>
+                                <label for="missing-${item.id}">Missing</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="damaged-${item.id}" 
+                                       onchange="toggleDamaged('${item.id}')" 
+                                       ${item.damaged ? 'checked' : ''}>
+                                <label for="damaged-${item.id}">Damaged</label>
+                            </div>
+                        </div>
+                        ${item.damaged ? `
+                            <div class="photo-upload">
+                                <input type="file" accept="image/*" 
+                                       onchange="uploadDamagePhoto('${item.id}', event)" 
+                                       id="photo-${item.id}">
+                                ${item.photo ? `<img src="${item.photo}" class="photo-preview" alt="Damage">` : ''}
+                            </div>
+                        ` : ''}
+                    </li>
+                `;
+            });
+            
+            html += '</ul>';
+            html += '<button class="btn btn-add-manual" onclick="openManualAddModal()">+ Add Manual Item</button>';
+            
+            container.innerHTML = html;
+        }
+
+        // ========================================
+        // RECEPTION - ITEM ACTIONS
+        // ========================================
+        
+        function toggleMissing(itemId) {
+            const item = boxItems.find(i => i.id === itemId);
+            if (!item) return;
+
+            const checkbox = document.getElementById(`missing-${itemId}`);
+            
+            if (checkbox.checked) {
+                currentMissingItem = itemId;
+                document.getElementById('missingItemName').textContent = item.partId;
+                openModal('missingConfirmModal');
+            } else {
+                item.missing = false;
+                item.missingReason = null;
+                item.missingNote = null;
+                showSnackbar(`${item.partId} unmarked as missing`, () => {
+                    item.missing = true;
+                    checkbox.checked = true;
+                });
+            }
+        }
+
+        function confirmMissing() {
+            const reason = document.getElementById('missingReason').value;
+            const note = document.getElementById('missingNote').value;
+            
+            if (!reason) {
+                alert('Please select a reason');
+                return;
+            }
+
+            const item = boxItems.find(i => i.id === currentMissingItem);
+            if (item) {
+                item.missing = true;
+                item.missingReason = reason;
+                item.missingNote = note;
+                
+                showSnackbar(`${item.partId} marked as missing`, () => {
+                    item.missing = false;
+                    item.missingReason = null;
+                    item.missingNote = null;
+                    document.getElementById(`missing-${item.id}`).checked = false;
+                });
+            }
+
+            document.getElementById('missingReason').value = '';
+            document.getElementById('missingNote').value = '';
+            closeModal('missingConfirmModal');
+            renderBoxContents();
+        }
+
+        function toggleDamaged(itemId) {
+            const item = boxItems.find(i => i.id === itemId);
+            if (!item) return;
+
+            const checkbox = document.getElementById(`damaged-${itemId}`);
+            
+            if (checkbox.checked) {
+                item.damaged = true;
+                showSnackbar(`${item.partId} marked as damaged`, () => {
+                    item.damaged = false;
+                    item.photo = null;
+                    checkbox.checked = false;
+                    renderBoxContents();
+                });
+            } else {
+                item.damaged = false;
+                item.photo = null;
+                showSnackbar(`${item.partId} unmarked as damaged`, () => {
+                    item.damaged = true;
+                    checkbox.checked = true;
+                    renderBoxContents();
+                });
+            }
+            
+            renderBoxContents();
+        }
+
+        function uploadDamagePhoto(itemId, event) {
+            const item = boxItems.find(i => i.id === itemId);
+            if (!item) return;
+
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                item.photo = e.target.result;
+                renderBoxContents();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ========================================
+        // RECEPTION - MANUAL ADD
+        // ========================================
+        
+        function openManualAddModal() {
+            openModal('manualAddModal');
+        }
+
+        function submitManualItem(event) {
+            event.preventDefault();
+            
+            const partId = document.getElementById('manualPartId').value.trim();
+            const description = document.getElementById('manualDescription').value.trim();
+            const qty = parseInt(document.getElementById('manualQty').value);
+            const note = document.getElementById('manualNote').value.trim();
+
+            const newItem = {
+                id: `MANUAL-${Date.now()}`,
+                partId,
+                description,
+                qty,
+                note,
+                woId: null,
+                manual: true,
+                missing: false,
+                damaged: false,
+                photo: null
+            };
+
+            boxItems.push(newItem);
+            
+            showSnackbar(`Manual item ${partId} added`, () => {
+                boxItems = boxItems.filter(i => i.id !== newItem.id);
+                renderBoxContents();
+            });
+
+            document.getElementById('manualAddForm').reset();
+            closeModal('manualAddModal');
+            renderBoxContents();
+        }
+
+        // ========================================
+        // RECEPTION - SUBMIT
+        // ========================================
+        
+        function submitReception() {
+            const damagedWithoutPhoto = boxItems.filter(i => i.damaged && !i.photo);
+            
+            if (damagedWithoutPhoto.length > 0) {
+                alert('Photo required for damaged items: ' + damagedWithoutPhoto.map(i => i.partId).join(', '));
+                return;
+            }
+
+            const received = boxItems.filter(i => !i.missing && !i.damaged);
+            const missing = boxItems.filter(i => i.missing);
+            const damaged = boxItems.filter(i => i.damaged);
+            const manual = boxItems.filter(i => i.manual);
+
+            const payload = {
+                id: `DELCONF-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                timestamp: new Date().toISOString(),
+                boxId: currentBoxId,
+                received: received.map(i => ({ partId: i.partId, woId: i.woId })),
+                missing: missing.map(i => ({ partId: i.partId, reason: i.missingReason, note: i.missingNote })),
+                damaged: damaged.map(i => ({ partId: i.partId, photo: i.photo })),
+                manual: manual.map(i => ({ partId: i.partId, description: i.description, qty: i.qty, note: i.note }))
+            };
+
+            pendingQueue.push(payload);
+            localStorage.setItem('pendingQueue', JSON.stringify(pendingQueue));
+            updatePendingBadge();
+
+            showSnackbar(`Reception submitted for ${currentBoxId}`, () => {
+                pendingQueue = pendingQueue.filter(p => p.id !== payload.id);
+                localStorage.setItem('pendingQueue', JSON.stringify(pendingQueue));
+                updatePendingBadge();
+            });
+
+            currentBoxId = null;
+            boxItems = [];
+            document.getElementById('boxIdInput').value = '';
+            document.getElementById('submitReceptionBtn').disabled = true;
+            closeModal('boxContentsModal');
+        }
+
+        // ========================================
+        // PENDING QUEUE
+        // ========================================
+        
+        function updatePendingBadge() {
+            document.getElementById('pendingBadge').textContent = `Pending: ${pendingQueue.length}`;
+        }
+
+        // ========================================
+        // SNACKBAR & UNDO
+        // ========================================
+        
+        function showSnackbar(message, undoCallback) {
+            const snackbar = document.getElementById('snackbar');
+            const messageEl = document.getElementById('snackbarMessage');
+            const undoBtn = document.getElementById('undoBtn');
+
+            messageEl.textContent = message;
+            snackbar.classList.add('show');
+
+            lastAction = undoCallback;
+
+            undoBtn.onclick = () => {
+                if (lastAction) {
+                    lastAction();
+                    lastAction = null;
+                }
+                hideSnackbar();
+            };
+
+            clearTimeout(snackbarTimeout);
+            snackbarTimeout = setTimeout(hideSnackbar, 8000);
+        }
+
+        function hideSnackbar() {
+            document.getElementById('snackbar').classList.remove('show');
+            clearTimeout(snackbarTimeout);
+        }
+
+        // ========================================
+        // MODAL MANAGEMENT
+        // ========================================
+        
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function closeAllModals() {
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.classList.remove('active');
+            });
+            document.body.style.overflow = 'auto';
+        }
+
+        // ========================================
+        // START APPLICATION
+        // ========================================
+        
+        init();
+    </script>
 </body>
 </html>
