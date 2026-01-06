@@ -346,8 +346,23 @@
         .part-desc {
             font-size: var(--font-size-sm);
             color: var(--text-secondary);
-            margin-bottom: var(--space-lg);
+            margin-bottom: var(--space-sm);
             line-height: 1.5;
+        }
+
+        /* PRICE BADGE */
+        .part-price {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            background: linear-gradient(135deg, #107c10 0%, #0d6b0d 100%);
+            color: white;
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-sm);
+            font-weight: 700;
+            margin-bottom: var(--space-lg);
+            box-shadow: var(--shadow-2);
         }
 
         .chips-container {
@@ -531,6 +546,13 @@
             box-shadow: var(--shadow-8);
         }
 
+        .btn-success:disabled {
+            background: var(--border-color);
+            color: var(--text-tertiary);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
         /* FAB - Floating Action Button */
         .fab {
             position: fixed;
@@ -685,6 +707,32 @@
             color: var(--text-primary);
             padding: var(--space-md) 0;
             line-height: 1.6;
+        }
+
+        .price-info {
+            background: linear-gradient(135deg, #f0f6ff 0%, #e8f4fd 100%);
+            padding: var(--space-lg);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: var(--space-xl);
+        }
+
+        .price-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .price-amount {
+            font-size: var(--font-size-2xl);
+            color: var(--primary-color);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
         }
 
         .wo-list {
@@ -1013,6 +1061,12 @@
             border-left: 4px solid var(--success-color);
         }
 
+        .alert-warning {
+            background: #fff8e6;
+            color: #8a5c00;
+            border-left: 4px solid var(--warning-color);
+        }
+
         /* ========================================
            LOADING SPINNER
         ======================================== */
@@ -1188,7 +1242,7 @@
         </div>
     </div>
 
-    <!-- Missing Confirmation Modal -->
+    <!-- Missing Confirmation Modal - SIMPLIFIED -->
     <div class="modal-overlay" id="missingConfirmModal" role="dialog" aria-modal="true" aria-labelledby="missingConfirmTitle">
         <div class="modal">
             <div class="modal-handle"></div>
@@ -1197,25 +1251,15 @@
                 <button class="modal-close" onclick="closeModal('missingConfirmModal')" aria-label="Close">×</button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-error">
+                <div class="alert alert-warning">
                     <span class="alert-icon">⚠️</span>
                     <div>
                         Mark item <strong id="missingItemName"></strong> as missing?
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="missingReason">Reason *</label>
-                    <select id="missingReason" required>
-                        <option value="">Select reason</option>
-                        <option value="not_in_box">Not in box</option>
-                        <option value="wrong_item">Wrong item delivered</option>
-                        <option value="short_shipment">Short shipment</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="missingNote">Additional Notes</label>
-                    <textarea id="missingNote" placeholder="Provide additional details..."></textarea>
+                    <label for="missingNote">Notes (Optional)</label>
+                    <textarea id="missingNote" placeholder="Add any additional notes about why this item is missing..."></textarea>
                 </div>
                 <button class="btn btn-primary" style="width: 100%;" onclick="confirmMissing()">
                     ✓ Confirm Missing
@@ -1231,15 +1275,15 @@
     </div>
 
     <script>
-        // [SAME JAVASCRIPT AS BEFORE - Copy the entire script section from the previous version]
         // ========================================
-        // DATA STORE
+        // DATA STORE - UPDATED WITH PRICES & ALLOCATED WOs
         // ========================================
         
         const PARTS_DATA = [
             {
                 id: '00248240',
                 description: 'Cable Assembly - Power Distribution',
+                price: 245.50,
                 available: 12,
                 onHand: 15,
                 allocated: 3,
@@ -1253,11 +1297,17 @@
                     { woId: 'WO-2024-003', bookingDate: '2024-01-18' },
                     { woId: 'WO-2024-007', bookingDate: '2024-01-22' }
                 ],
+                allocatedWOs: [
+                    { woId: 'WO-2024-002', bookingDate: '2024-01-16' },
+                    { woId: 'WO-2024-004', bookingDate: '2024-01-19' },
+                    { woId: 'WO-2024-008', bookingDate: '2024-01-23' }
+                ],
                 onOrderDetails: { qty: 25, eta: '2024-02-10' }
             },
             {
                 id: '0008045',
                 description: 'Electric Motor 3-Phase 5HP',
+                price: 1850.00,
                 available: 3,
                 onHand: 5,
                 allocated: 2,
@@ -1269,22 +1319,29 @@
                     { woId: 'WO-2024-005', bookingDate: '2024-01-20' },
                     { woId: 'WO-2024-009', bookingDate: '2024-01-25' }
                 ],
+                allocatedWOs: [
+                    { woId: 'WO-2024-006', bookingDate: '2024-01-21' },
+                    { woId: 'WO-2024-010', bookingDate: '2024-01-26' }
+                ],
                 onOrderDetails: { qty: 10, eta: '2024-02-05' }
             },
             {
                 id: '00169216',
                 description: 'Cooling Fan Assembly 12V',
+                price: 89.99,
                 available: 8,
                 onHand: 8,
                 allocated: 0,
                 onOrder: 0,
                 availableWOs: [],
                 onHandWOs: [],
+                allocatedWOs: [],
                 onOrderDetails: null
             },
             {
                 id: '00452301',
                 description: 'Hydraulic Pump HP-200',
+                price: 3200.00,
                 available: 0,
                 onHand: 2,
                 allocated: 2,
@@ -1292,6 +1349,10 @@
                 availableWOs: [],
                 onHandWOs: [
                     { woId: 'WO-2024-012', bookingDate: '2024-01-28' }
+                ],
+                allocatedWOs: [
+                    { woId: 'WO-2024-011', bookingDate: '2024-01-27' },
+                    { woId: 'WO-2024-013', bookingDate: '2024-01-29' }
                 ],
                 onOrderDetails: { qty: 15, eta: '2024-02-15' }
             }
@@ -1397,6 +1458,7 @@
                             <div class="part-status-icon">✓</div>
                         </div>
                         <div class="part-desc">${part.description}</div>
+                        <div class="part-price">💰 $${part.price.toFixed(2)}</div>
                         <div class="chips-container">
                             <div class="chip chip-available">
                                 <span class="chip-label">Available</span>
@@ -1429,12 +1491,20 @@
             document.getElementById('partDetailsTitle').textContent = `Part ${part.id}`;
             
             let bodyHtml = `
+                <div class="price-info">
+                    <div class="price-label">Unit Price</div>
+                    <div class="price-amount">
+                        💰 $${part.price.toFixed(2)}
+                    </div>
+                </div>
+
                 <div class="detail-section">
                     <h4>📋 Description</h4>
                     <div class="detail-value">${part.description}</div>
                 </div>
             `;
 
+            // AVAILABLE Section
             if (part.available > 0) {
                 bodyHtml += `
                     <div class="detail-section">
@@ -1453,6 +1523,7 @@
                 `;
             }
 
+            // ON HAND Section
             if (part.onHand > 0) {
                 bodyHtml += `
                     <div class="detail-section">
@@ -1471,6 +1542,26 @@
                 `;
             }
 
+            // ALLOCATED Section - NOW INCLUDED!
+            if (part.allocated > 0) {
+                bodyHtml += `
+                    <div class="detail-section">
+                        <h4>🔒 Allocated (${part.allocated})</h4>
+                        ${part.allocatedWOs.length > 0 ? `
+                            <ul class="wo-list">
+                                ${part.allocatedWOs.map(wo => `
+                                    <li class="wo-item">
+                                        <span class="wo-id">${wo.woId}</span>
+                                        <div class="wo-date">📅 Booking: ${wo.bookingDate}</div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : '<div class="detail-value">No linked work orders</div>'}
+                    </div>
+                `;
+            }
+
+            // ON ORDER Section
             if (part.onOrder > 0 && part.onOrderDetails) {
                 bodyHtml += `
                     <div class="detail-section">
@@ -1509,6 +1600,7 @@
                 manual: false
             }));
 
+            // ENABLE SUBMIT BUTTON AFTER BOX CONFIRM
             document.getElementById('submitReceptionBtn').disabled = false;
             openBoxContentsModal();
         }
@@ -1574,12 +1666,14 @@
             const checkbox = document.getElementById(`missing-${itemId}`);
             
             if (checkbox.checked) {
+                // OPEN CONFIRMATION MODAL
                 currentMissingItem = itemId;
                 document.getElementById('missingItemName').textContent = item.partId;
+                document.getElementById('missingNote').value = ''; // Reset note
                 openModal('missingConfirmModal');
             } else {
+                // UNCHECK - no modal
                 item.missing = false;
-                item.missingReason = null;
                 item.missingNote = null;
                 showSnackbar(`${item.partId} unmarked as missing`, () => {
                     item.missing = true;
@@ -1589,30 +1683,20 @@
         }
 
         function confirmMissing() {
-            const reason = document.getElementById('missingReason').value;
-            const note = document.getElementById('missingNote').value;
-            
-            if (!reason) {
-                alert('Please select a reason');
-                return;
-            }
+            const note = document.getElementById('missingNote').value.trim();
 
             const item = boxItems.find(i => i.id === currentMissingItem);
             if (item) {
                 item.missing = true;
-                item.missingReason = reason;
-                item.missingNote = note;
+                item.missingNote = note || 'No note provided';
                 
                 showSnackbar(`${item.partId} marked as missing`, () => {
                     item.missing = false;
-                    item.missingReason = null;
                     item.missingNote = null;
                     document.getElementById(`missing-${item.id}`).checked = false;
                 });
             }
 
-            document.getElementById('missingReason').value = '';
-            document.getElementById('missingNote').value = '';
             closeModal('missingConfirmModal');
             renderBoxContents();
         }
@@ -1714,7 +1798,7 @@
                 timestamp: new Date().toISOString(),
                 boxId: currentBoxId,
                 received: received.map(i => ({ partId: i.partId, woId: i.woId })),
-                missing: missing.map(i => ({ partId: i.partId, reason: i.missingReason, note: i.missingNote })),
+                missing: missing.map(i => ({ partId: i.partId, note: i.missingNote })),
                 damaged: damaged.map(i => ({ partId: i.partId, photo: i.photo })),
                 manual: manual.map(i => ({ partId: i.partId, description: i.description, qty: i.qty, note: i.note }))
             };
@@ -1732,7 +1816,7 @@
             currentBoxId = null;
             boxItems = [];
             document.getElementById('boxIdInput').value = '';
-            document.getElementById('submitReceptionBtn').disabled = true;
+            document.getElementById('submitReceptionBtn').disabled = true; // RESET TO DISABLED
             closeModal('boxContentsModal');
         }
 
