@@ -3,66 +3,62 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Van Stock & Reception Mockup (Updated)</title>
+  <title>Van Stock & Reception Prototype</title>
   <style>
     :root{
-      --bg:#f4f6f8;--card:#fff;--muted:#6b7280;--accent:#2563eb;--success:#16a34a;
-      --warning:#f59e0b;--danger:#ef4444;--info:#0284c7;--chip-bg:#eef2ff;
+      --bg:#f4f6f8; --card:#ffffff; --muted:#6b7280; --accent:#2563eb;
+      --success:#16a34a; --warning:#f59e0b; --danger:#ef4444; --info:#0284c7;
+      --purple:#7c3aed; --chip-bg:#eef2ff;
       font-family:Inter, Roboto, Arial, sans-serif;
     }
-    body{margin:0;background:var(--bg);color:#0f172a;}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:#0f172a;-webkit-font-smoothing:antialiased}
     .app{max-width:980px;margin:18px auto;padding:18px;}
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-    .tech{display:flex;align-items:center;gap:12px;}
-    .tech h1{margin:0;font-size:18px;}
-    .meta{font-size:13px;color:var(--muted);}
-    .controls{display:flex;gap:8px;align-items:center;}
-    .btn{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;}
-    .btn.secondary{background:#fff;border:1px solid #e2e8f0;color:var(--muted);}
-    .tabs{display:flex;gap:8px;margin:12px 0;}
-    .tab{padding:10px 14px;background:var(--card);border-radius:10px;cursor:pointer;border:1px solid transparent;}
-    .tab.active{border-color:#c7d2fe;background:linear-gradient(180deg,#fbfdff,#f7f9ff);}
-    .cards{display:flex;gap:10px;margin:10px 0 20px;}
-    .card{background:var(--card);padding:12px;border-radius:10px;flex:1;box-shadow:0 1px 2px rgba(15,23,42,0.04);}
-    .list{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 1px 2px rgba(15,23,42,0.04);}
-    .row{display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px dashed #eef2ff;}
-    .row:last-child{border-bottom:none;}
-    .part-id{font-weight:600;}
-    .desc{color:var(--muted);font-size:13px;}
-    .qtys{display:flex;gap:8px;align-items:center;margin-left:auto;}
-    .chip{padding:6px 8px;border-radius:999px;font-size:13px;background:var(--chip-bg);color:var(--info);display:inline-flex;align-items:center;}
-    .small{font-size:13px;color:var(--muted);}
-    .box-card{display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:10px;background:#fff;margin-bottom:8px;border:1px solid #eef2ff;}
-    .modal{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(2,6,23,0.45);display:flex;align-items:center;justify-content:center;z-index:99;}
-    .modal .panel{width:92%;max-width:820px;background:#fff;padding:16px;border-radius:10px;max-height:85vh;overflow:auto;}
-    input[type="text"], input[type="number"], select{padding:8px;border-radius:8px;border:1px solid #e6eefc;font-size:14px;width:100%;}
-    .row-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .tag{background:#eef2ff;padding:6px 8px;border-radius:8px;color:var(--info);font-weight:600;}
-    .eta-badge{padding:6px 8px;border-radius:8px;color:white;font-weight:600;}
-    .eta-soon{background:var(--warning);color:#111}
-    .eta-ok{background:var(--info)}
-    .eta-overdue{background:var(--danger)}
-    .link{color:var(--accent);text-decoration:underline;cursor:pointer;font-size:13px}
-    footer{margin-top:18px;font-size:13px;color:var(--muted);text-align:center;}
-    .summary-line{font-size:13px;color:var(--muted);margin-top:6px;}
-    .expand{cursor:pointer;color:var(--accent);font-size:13px}
-    .status-badge{padding:6px 8px;border-radius:8px;color:white;font-weight:600}
-    .status-available{background:var(--success)}
-    .status-vanreserved{background:#7c3aed}
-    .status-onhand{background:var(--info)}
-    .status-allocated{background:var(--warning);color:#111}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .tech h1{margin:0;font-size:18px}
+    .meta{font-size:13px;color:var(--muted)}
+    .controls{display:flex;gap:8px;align-items:center}
+    .btn{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    .btn.secondary{background:#fff;border:1px solid #e2e8f0;color:var(--muted)}
+    .tabs{display:flex;gap:8px;margin:12px 0}
+    .tab{padding:10px 14px;background:var(--card);border-radius:10px;cursor:pointer;border:1px solid transparent}
+    .tab.active{border-color:#c7d2fe;background:linear-gradient(180deg,#fbfdff,#f7f9ff)}
+    .cards{display:flex;gap:10px;margin:10px 0 20px}
+    .card{background:var(--card);padding:12px;border-radius:10px;flex:1;box-shadow:0 1px 2px rgba(15,23,42,0.04)}
+    .list{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 1px 2px rgba(15,23,42,0.04)}
+    .row{display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px dashed #eef2ff}
+    .row:last-child{border-bottom:none}
+    .part-id{font-weight:600}
+    .desc{color:var(--muted);font-size:13px}
+    .small{font-size:13px;color:var(--muted)}
+    .badge{padding:6px 8px;border-radius:8px;color:white;font-weight:600}
+    .status-available{background:var(--success)} .status-onhand{background:var(--info)}
+    .status-allocated{background:var(--warning);color:#111} .status-reserved{background:var(--purple)}
     .status-onorder{background:#64748b}
-    @media(max-width:640px){.row-grid{grid-template-columns:1fr;}}
+    .eta-badge{padding:6px 8px;border-radius:8px;color:white;font-weight:600}
+    .eta-soon{background:var(--warning);color:#111} .eta-ok{background:var(--info)} .eta-overdue{background:var(--danger)}
+    .link{color:var(--accent);text-decoration:underline;cursor:pointer;font-size:13px}
+    .actions{display:flex;gap:8px}
+    .action{padding:6px 8px;border-radius:8px;border:1px solid #e6eefc;background:#fff;cursor:pointer;font-size:13px}
+    .panel-title{font-weight:700;margin-bottom:8px}
+    .modal{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(2,6,23,0.45);display:flex;align-items:center;justify-content:center;z-index:99}
+    .modal .card{width:92%;max-width:820px;max-height:85vh;overflow:auto}
+    input, textarea, select{padding:8px;border-radius:8px;border:1px solid #e6eefc;font-size:14px;width:100%}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:720px){.grid{grid-template-columns:1fr}}
+    footer{margin-top:18px;font-size:13px;color:var(--muted);text-align:center}
+    .tag{background:#eef2ff;padding:6px 8px;border-radius:8px;color:var(--info);font-weight:600}
+    .sticker-yellow{background:#fff7cc;border:1px solid #f4d03f;padding:6px;border-radius:4px;color:#ad6b00}
+    .sticker-red{background:#ffecec;border:1px solid #f87171;padding:6px;border-radius:4px;color:#7f1d1d}
+    .pending{color:var(--warning);font-weight:700}
   </style>
 </head>
 <body>
   <div class="app" id="app">
     <header>
       <div class="tech">
-        <div>
-          <h1>Van Stock — T1 (John Doe)</h1>
-          <div class="meta">Tech ID: T1 • Location: Berlin</div>
-        </div>
+        <h1>Field Service — Van Stock & Reception</h1>
+        <div class="meta">Tech: T1 (John Doe) • Location: Berlin</div>
       </div>
       <div class="controls">
         <div class="meta" id="lastSync">Last sync: —</div>
@@ -71,9 +67,10 @@
       </div>
     </header>
 
-    <div class="tabs" role="tablist" aria-label="Main tabs">
+    <div class="tabs" role="tablist">
       <div class="tab active" data-tab="van" id="tabVan">Van Stock</div>
-      <div class="tab" data-tab="reception" id="tabRec">Delivery / Reception</div>
+      <div class="tab" data-tab="reception" id="tabRec">Reception</div>
+      <div class="tab" data-tab="returns" id="tabReturns">Returns</div>
     </div>
 
     <div id="content">
@@ -81,40 +78,18 @@
       <div id="view-van">
         <div class="cards">
           <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <div>
-                <div class="muted">Total distinct parts</div>
-                <div style="font-size:20px;font-weight:700" id="totalParts">0</div>
-              </div>
-              <div style="text-align:right">
-                <div class="muted">Total On Order</div>
-                <div style="font-size:18px;font-weight:700" id="onOrderTotal">0</div>
-              </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><div class="small muted">Total distinct parts</div><div style="font-size:20px;font-weight:700" id="totalParts">0</div></div>
+              <div style="text-align:right"><div class="small muted">On order total</div><div style="font-size:18px;font-weight:700" id="onOrderTotal">0</div></div>
             </div>
           </div>
-          <div class="card">
-            <div class="muted">Items To Be Received</div>
-            <div style="font-size:20px;font-weight:700" id="toReceiveCount">0</div>
-          </div>
-          <div class="card">
-            <div class="muted">Overdue On Order</div>
-            <div style="font-size:20px;font-weight:700;color:var(--danger)" id="overdueCount">0</div>
-          </div>
+          <div class="card"><div class="small muted">Items to receive</div><div style="font-size:20px;font-weight:700" id="toReceiveCount">0</div></div>
+          <div class="card"><div class="small muted">Allocated</div><div style="font-size:20px;font-weight:700" id="allocatedCount">0</div></div>
         </div>
 
-        <div style="margin-bottom:8px;">
-          <div class="small muted">Legend:</div>
-          <div style="display:flex;gap:8px;margin-top:6px;">
-            <div class="status-badge status-available">Available (safety stock)</div>
-            <div class="status-badge status-vanreserved">Van stock reserved</div>
-            <div class="status-badge status-onhand">On Hand (delivered for today's WO / reception needed)</div>
-            <div class="status-badge status-allocated">Allocated (tied to WO)</div>
-            <div class="status-badge status-onorder">On Order (replenishment or confirmed missing)</div>
-          </div>
-          <div class="small muted" style="margin-top:6px;">Notes: Available = default van stock technicians keep. Van stock reserved = ERP booked from available. On Order includes van replenishment and parts confirmed missing at Reception (DDP-58572).</div>
+        <div class="list" id="vanList">
+          <!-- rows injected by JS -->
         </div>
-
-        <div class="list" id="vanList"></div>
       </div>
 
       <!-- Reception View -->
@@ -123,479 +98,289 @@
           <div style="display:flex;gap:8px;align-items:center;">
             <input type="text" id="boxInput" placeholder="Enter or scan Box ID (e.g. BOX123)" />
             <button class="btn" id="fetchBox">Open Box</button>
-            <div style="margin-left:auto" class="small muted">You must enter Box ID to open a box. Default open is disabled.</div>
+            <div style="margin-left:auto" class="small muted">Box ID required to open box.</div>
           </div>
         </div>
-        <div id="boxArea" class="list"><div class="small muted">Enter Box ID above and click "Open Box" to view contents.</div></div>
+        <div id="boxArea" class="list"><div class="small muted">Enter Box ID and click Open Box to view contents.</div></div>
+      </div>
+
+      <!-- Returns View -->
+      <div id="view-returns" style="display:none;">
+        <div class="list" style="margin-bottom:12px;padding:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div>
+              <div class="small muted">Return cadence: daily</div>
+              <div class="small muted">Next return due: today</div>
+            </div>
+            <div style="margin-left:auto"><button class="btn" id="createRDD">Create Return</button></div>
+          </div>
+        </div>
+        <div id="rddArea" class="list"><div class="small muted">Create or review Return Delivery Documents (RDD).</div></div>
       </div>
     </div>
 
-    <footer>Mockup — van stock view is read-only. Reception requires Box ID. Local demo (localStorage).</footer>
+    <footer>Prototype — read‑only Van Stock; Reception requires Box ID. Demo data stored in browser.</footer>
   </div>
 
-  <div id="modal" style="display:none;"></div>
+  <div id="modal" style="display:none"></div>
   <div id="toast" style="display:none;position:fixed;right:16px;bottom:16px;background:#0f172a;color:#fff;padding:12px;border-radius:8px;"></div>
 
 <script>
-/* Updated mock implementing:
-   - Clear status definitions: Available (safety stock), Van stock reserved, On Hand, Allocated, On Order (including RECEPTION_MISSING)
-   - Van Stock read-only, shows on_orders summary with multiple ETAs
-   - Reception requires Box ID entry to open; no default open button
-   - Matching algorithm uses on_orders and decrements outstanding_qty; unmatched quantities create exception records
+/*
+Prototype implements:
+- Van Stock read-only list with breakdown and multiple on_orders
+- Reception: open box by ID, view items, manual add, Receive / Missing (two-step) / Damaged (photo required)
+- Returns: create RDD draft with return types (RETURN / FACTORY / SCRAP) with stickers
+- Offline simulation (pending queue) and Sync now
 */
 
 const SAMPLE = {
   technician_id: "T1",
   parts: [
-    {
-      part_id: "P12345",
-      part_name: "P12345",
-      description: 'Valve 3/4" model XYZ',
-      total_qty: 3,
-      breakdown: {available:2, on_hand_delivered_today:1, allocated:0},
-      on_orders: [
-        {order_id:"O-1001", supplier:"WH-DE", qty:2, outstanding_qty:2, eta:"2026-05-22", status:"IN_TRANSIT", po_number:"PO1001", tracking:"TRK123", confidence:"High", source:"REPLENISHMENT", created_at:"2026-05-01T08:00:00Z"},
-        {order_id:"O-1002", supplier:"WH-DE", qty:1, outstanding_qty:1, eta:"2026-05-27", status:"ORDERED", po_number:"PO1002", tracking:null, confidence:"Medium", source:"RECEPTION_MISSING", created_at:"2026-05-03T10:00:00Z"}
-      ],
-      price: {amount:12.5,currency:"EUR",incl_vat:true},
-      status: "ON_HAND_DELIVERED_TODAY",
-      linked_WOs: [{wo_id:"WO100",booking_date:"2026-05-20"}],
-      last_updated: new Date().toISOString()
-    },
-    {
-      part_id: "P67890",
-      description: "Filter ABC",
-      part_name: "P67890",
-      total_qty: 1,
-      breakdown: {available:1, on_hand_delivered_today:0, allocated:0},
-      on_orders: [
-        {order_id:"O-2001", supplier:"WH-DE", qty:2, outstanding_qty:2, eta:"2026-05-18", status:"IN_TRANSIT", po_number:"PO2001", tracking:"TRK555", confidence:"High", source:"REPLENISHMENT", created_at:"2026-05-02T09:00:00Z"},
-        {order_id:"O-2002", supplier:"WH-DE", qty:1, outstanding_qty:1, eta:"2026-05-27", status:"ORDERED", po_number:"PO2002", tracking:null, confidence:"Medium", source:"REPLENISHMENT", created_at:"2026-05-04T11:00:00Z"}
-      ],
-      price: {amount:7.25,currency:"EUR",incl_vat:true},
-      status: "AVAILABLE",
-      linked_WOs: [],
-      last_updated: new Date().toISOString()
-    },
-    {
-      part_id: "P22222",
-      part_name: "P22222",
-      description: "Thermostat (reserved example)",
-      total_qty: 1,
-      breakdown: {available:0, on_hand_delivered_today:0, allocated:0},
-      on_orders: [],
-      price: {amount:45.00,currency:"EUR",incl_vat:true},
-      status: "VAN_STOCK_RESERVED",
-      reserved_for: { wo_id: "WO555", booking_date: "2026-05-25" },
-      linked_WOs: [{wo_id:"WO555",booking_date:"2026-05-25"}],
-      last_updated: new Date().toISOString()
-    },
-    {
-      part_id: "P11111",
-      part_name: "P11111",
-      description: "Hose connector",
-      total_qty: 0,
-      breakdown: {available:0, on_hand_delivered_today:0, allocated:2},
-      on_orders: [],
-      price: {amount:5.5,currency:"EUR",incl_vat:true},
-      status: "ALLOCATED",
-      linked_WOs: [{wo_id:"WO200",booking_date:"2026-05-21"}],
-      last_updated: new Date().toISOString()
-    }
+    { part_id:"P-100", description:'Valve 3/4" model X', total_qty:3, breakdown:{available:2,on_hand:1,allocated:0}, on_orders:[
+        {order_id:"O-1001", qty:2, outstanding_qty:2, eta:"2026-06-22", status:"IN_TRANSIT", source:"REPLENISHMENT"},
+        {order_id:"O-1002", qty:1, outstanding_qty:1, eta:"2026-06-27", status:"ORDERED", source:"REPLENISHMENT"}], price:{amount:12.5,currency:"EUR",incl_vat:true}, status:"ON_HAND", linked_WOs:[{wo_id:"WO123",booking_date:"2026-06-01"}], delivery_box_ids:[{box_id:"BOX123",delivered_qty:1}]},
+    { part_id:"P-200", description:"Filter ABC", total_qty:1, breakdown:{available:1,on_hand:0,allocated:0}, on_orders:[
+        {order_id:"O-2001", qty:2, outstanding_qty:2, eta:"2026-06-18", status:"IN_TRANSIT", source:"REPLENISHMENT"}], price:{amount:7.25,currency:"EUR",incl_vat:true}, status:"AVAILABLE", linked_WOs:[] },
+    { part_id:"P-300", description:"Thermostat (reserved)", total_qty:1, breakdown:{available:0,on_hand:0,allocated:0}, on_orders:[], price:{amount:45.00,currency:"EUR",incl_vat:true}, status:"VAN_RESERVED", reserved_for:{wo_id:"WO200",booking_date:"2026-06-03"}, linked_WOs:[{wo_id:"WO200",booking_date:"2026-06-03"}] }
   ],
-  boxes: [
-    {
-      box_id:"BOX123",
-      shipment_date:"2026-05-20T07:30:00Z",
-      delivered_by:"Warehouse DE",
-      status:"UNCONFIRMED",
-      items:[
-        {part_id:"P12345",description:'Valve 3/4"',wo_id:"WO100",requested_qty:1,delivered_qty:1},
-        {part_id:"P67890",description:"Filter",wo_id:"WO101",requested_qty:1,delivered_qty:0}
-      ]
-    }
+  boxes:[
+    { box_id:"BOX123", shipment_date:"2026-06-01T07:30:00Z", delivered_by:"WH-DE", status:"UNCONFIRMED", items:[
+      {part_id:"P-100", description:'Valve 3/4"', wo_id:"WO123", requested_qty:1, delivered_qty:1},
+      {part_id:"P-200", description:'Filter ABC', wo_id:"WO124", requested_qty:1, delivered_qty:0}
+    ] }
   ],
+  pending: [],
   exceptions: [],
-  pending: []
+  rdds: []
 };
 
-const LS_KEY = "vanMock_v3";
-
-function loadState(){
-  const raw = localStorage.getItem(LS_KEY);
-  if(raw) return JSON.parse(raw);
-  localStorage.setItem(LS_KEY, JSON.stringify(SAMPLE));
-  return JSON.parse(localStorage.getItem(LS_KEY));
-}
+const LS_KEY = "vanProto_v1";
+function loadState(){ const raw=localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw); localStorage.setItem(LS_KEY, JSON.stringify(SAMPLE)); return JSON.parse(localStorage.getItem(LS_KEY)); }
 function saveState(s){ localStorage.setItem(LS_KEY, JSON.stringify(s)); }
 
 let state = loadState();
 
 function render(){
   document.getElementById('lastSync').innerText = "Last sync: " + (localStorage.getItem('lastSync') || '—');
-  renderCounts();
   renderVanList();
-  renderBoxAreaMessage();
+  renderCounts();
+  renderBoxMessage();
+  renderRDDArea();
 }
 function renderCounts(){
-  const totalParts = state.parts.length;
+  document.getElementById('totalParts').innerText = state.parts.length;
   const onOrderTotal = state.parts.reduce((s,p)=> s + (p.on_orders? p.on_orders.reduce((a,o)=>a+o.outstanding_qty,0):0), 0);
-  const toReceive = state.parts.filter(p=>p.breakdown.on_hand_delivered_today>0 || (p.status && p.status.includes('TO_BE_RECEIVED'))).length;
-  const overdue = state.parts.reduce((s,p)=>{
-    if(!p.on_orders) return s;
-    const o = p.on_orders.filter(x=> new Date(x.eta) < startOfDay(new Date()) && x.outstanding_qty>0);
-    return s + o.length;
-  },0);
-  document.getElementById('totalParts').innerText = totalParts;
   document.getElementById('onOrderTotal').innerText = onOrderTotal;
+  const toReceive = state.parts.filter(p=>p.breakdown.on_hand>0).length;
   document.getElementById('toReceiveCount').innerText = toReceive;
-  document.getElementById('overdueCount').innerText = overdue;
+  const allocated = state.parts.reduce((s,p)=> s + (p.breakdown.allocated||0),0);
+  document.getElementById('allocatedCount').innerText = allocated;
 }
-
-function startOfDay(d){ const t = new Date(d); t.setHours(0,0,0,0); return t; }
-
 function renderVanList(){
-  const container = document.getElementById('vanList');
-  container.innerHTML = '';
+  const el = document.getElementById('vanList'); el.innerHTML = '';
   state.parts.forEach(p=>{
-    const row = document.createElement('div'); row.className='row';
-    // compute On Order summary
-    const totalOnOrder = p.on_orders ? p.on_orders.reduce((a,o)=>a+o.outstanding_qty,0) : 0;
+    const totalOnOrder = (p.on_orders||[]).reduce((a,o)=>a+o.outstanding_qty,0);
     let etaSummary = '';
-    if(totalOnOrder>0 && p.on_orders.length>0){
-      const sorted = p.on_orders.slice().sort((a,b)=> new Date(a.eta)-new Date(b.eta));
-      const first = sorted[0];
-      const second = sorted[1];
-      etaSummary = `ETA: ${formatDate(first.eta)} (${first.outstanding_qty})`;
-      if(second) etaSummary += ` • ${formatDate(second.eta)} (${second.outstanding_qty})`;
-      if(p.on_orders.length>2) etaSummary += ` • +${p.on_orders.length-2} more`;
+    if(totalOnOrder>0){
+      const sorted = (p.on_orders||[]).slice().sort((a,b)=> new Date(a.eta)-new Date(b.eta));
+      etaSummary = `ETA: ${formatDate(sorted[0].eta)} (${sorted[0].outstanding_qty})` + (sorted[1]?` • ${formatDate(sorted[1].eta)} (${sorted[1].outstanding_qty})`:'') + ((p.on_orders.length>2)?` • +${p.on_orders.length-2} more`:'');
     }
-    // status badge
-    let statusHtml = '<div class="tag">—</div>';
-    if(p.status==='AVAILABLE') statusHtml = '<div class="status-badge status-available">Available</div>';
-    if(p.status==='VAN_STOCK_RESERVED') statusHtml = '<div class="status-badge status-vanreserved">Van stock reserved</div>';
-    if(p.status==='ON_HAND_DELIVERED_TODAY') statusHtml = '<div class="status-badge status-onhand">On Hand (today)</div>';
-    if(p.status==='ALLOCATED') statusHtml = '<div class="status-badge status-allocated">Allocated</div>';
-    if(p.status==='ON_ORDER') statusHtml = '<div class="status-badge status-onorder">On Order</div>';
-
-    // overdue detection
-    const hasOverdue = (p.on_orders || []).some(o=> new Date(o.eta) < startOfDay(new Date()) && o.outstanding_qty>0);
+    const row = document.createElement('div'); row.className='row';
     row.innerHTML = `
-      <div style="min-width:260px;">
+      <div style="min-width:240px">
         <div class="part-id">${p.part_id}</div>
         <div class="desc">${p.description}</div>
         <div class="small">Price: ${formatPrice(p.price)}</div>
       </div>
       <div style="margin-left:12px">
         <div class="small">Total in van: <strong>${p.total_qty}</strong></div>
-        <div class="summary-line">Available: ${p.breakdown.available} • On hand: ${p.breakdown.on_hand_delivered_today} • Allocated: ${p.breakdown.allocated}</div>
-        ${ totalOnOrder>0 ? `<div class="summary-line">On order: <strong>${totalOnOrder}</strong> • ${escapeHtml(etaSummary)}</div>` : '' }
+        <div class="small">Available: ${p.breakdown.available} • On Hand: ${p.breakdown.on_hand} • Allocated: ${p.breakdown.allocated}</div>
+        ${ totalOnOrder>0 ? `<div class="small">On order: <strong>${totalOnOrder}</strong> • ${escapeHtml(etaSummary)}</div>` : '' }
       </div>
       <div style="margin-left:auto;text-align:right">
-        ${ hasOverdue ? `<div style="margin-bottom:6px"><span class="eta-badge eta-overdue">Overdue</span></div>` : ''}
-        <div>${statusHtml}</div>
-        <div style="margin-top:8px"><span class="expand link" data-id="${p.part_id}">Details</span></div>
+        <div>${renderStatus(p)}</div>
+        <div style="margin-top:8px"><span class="link" data-id="${p.part_id}">Details</span></div>
       </div>
     `;
-    container.appendChild(row);
+    el.appendChild(row);
   });
-
-  // attach detail handlers
-  container.querySelectorAll('.expand').forEach(el=>{
-    el.addEventListener('click', e=>{
-      const pid = el.getAttribute('data-id');
-      openPartDetail(pid);
-    });
-  });
+  el.querySelectorAll('.link').forEach(a=>a.addEventListener('click', e=> openPartDetail(a.getAttribute('data-id'))));
 }
-
-function formatDate(d){ if(!d) return ''; const dt = new Date(d); return dt.toLocaleDateString(); }
-function formatPrice(p){ if(!p) return ''; return `${p.currency} ${p.amount.toFixed(2)} ${p.incl_vat? '(incl. VAT)':''}`; }
+function renderStatus(p){
+  if(p.status==='AVAILABLE') return '<span class="badge status-available">Available</span>';
+  if(p.status==='ON_HAND') return '<span class="badge status-onhand">On Hand</span>';
+  if(p.status==='VAN_RESERVED') return '<span class="badge status-reserved">Van reserved</span>';
+  if(p.status==='ALLOCATED') return '<span class="badge status-allocated">Allocated</span>';
+  if(p.status==='ON_ORDER') return '<span class="badge status-onorder">On Order</span>';
+  return `<span class="tag">${p.status}</span>`;
+}
+function formatPrice(pr){ if(!pr) return ''; return `${pr.currency} ${pr.amount.toFixed(2)} ${pr.incl_vat? '(incl. VAT)':''}`; }
+function formatDate(d){ if(!d) return ''; return new Date(d).toLocaleDateString(); }
 function escapeHtml(s){ return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;') : ''; }
 
-/* Part detail (read-only) */
-function openPartDetail(part_id){
-  const p = state.parts.find(x=>x.part_id===part_id);
-  if(!p) return alert('Part not found');
-  const panel = document.createElement('div');
-  panel.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <div><strong>${p.part_id}</strong> • ${p.description}</div>
-      <div><button class="action" id="closeDet">Close</button></div>
-    </div>
-    <div class="row-grid">
+function openPartDetail(partId){
+  const p = state.parts.find(x=>x.part_id===partId); if(!p) return alert('Not found');
+  const panel = document.createElement('div'); panel.className='card';
+  panel.innerHTML = `<div class="panel-title">${p.part_id} • ${p.description}</div>
+    <div class="grid">
       <div>
         <div class="small muted">Total in van</div><div style="font-size:18px">${p.total_qty}</div>
-        <div class="small muted" style="margin-top:8px">Available</div><div style="font-size:16px">${p.breakdown.available}</div>
-        <div class="small muted" style="margin-top:8px">On Hand (today)</div><div style="font-size:16px">${p.breakdown.on_hand_delivered_today}</div>
-        <div class="small muted" style="margin-top:8px">Allocated</div><div style="font-size:16px">${p.breakdown.allocated}</div>
+        <div class="small muted">Available</div><div>${p.breakdown.available}</div>
+        <div class="small muted">On Hand</div><div>${p.breakdown.on_hand}</div>
+        <div class="small muted">Allocated</div><div>${p.breakdown.allocated}</div>
       </div>
       <div>
-        <div class="small muted">Price</div><div style="font-size:16px">${formatPrice(p.price)}</div>
+        <div class="small muted">Price</div><div>${formatPrice(p.price)}</div>
         <div style="margin-top:12px"><strong>Linked WOs</strong></div>
-        <div class="small">${(p.linked_WOs || []).map(w=>w.wo_id+' ('+w.booking_date+')').join(', ') || '—'}</div>
+        <div class="small">${(p.linked_WOs||[]).map(w=>w.wo_id+' ('+w.booking_date+')').join(', ')||'—'}</div>
       </div>
     </div>
-    <div style="margin-top:12px;">
-      <strong>On Orders</strong>
-      <div style="margin-top:8px;">
-        ${ (p.on_orders && p.on_orders.length>0) ? p.on_orders.map(o=>{
-          const overdue = new Date(o.eta) < startOfDay(new Date()) && o.outstanding_qty>0;
-          const etaClass = overdue ? 'eta-overdue' : (new Date(o.eta) - new Date() < 3*24*3600*1000 ? 'eta-soon' : 'eta-ok');
-          return `<div style="padding:8px;border-bottom:1px solid #f1f5f9;">
-            <div><span class="eta-badge ${etaClass}">${formatDate(o.eta)}</span> <strong>${o.outstanding_qty}/${o.qty}</strong> • PO ${o.po_number} • ${o.supplier} • Source: ${o.source||'N/A'}</div>
-            <div class="small muted">Order ${o.order_id} • Status ${o.status} • Tracking ${o.tracking||'—'}</div>
-          </div>`;
-        }).join('') : '<div class="small muted">No on orders</div>' }
-      </div>
+    <div style="margin-top:12px"><strong>On Orders</strong>
+      <div>${(p.on_orders && p.on_orders.length>0) ? p.on_orders.map(o=>`<div style="padding:8px;border-bottom:1px solid #f1f5f9"><span class="eta-badge ${new Date(o.eta) < new Date()? 'eta-overdue': 'eta-ok'}">${formatDate(o.eta)}</span> ${o.outstanding_qty}/${o.qty} • PO ${o.order_id} • ${o.source}</div>`).join('') : '<div class="small muted">No on orders</div>'}</div>
     </div>
-  `;
+    <div style="margin-top:12px"><button class="action" id="closeDet">Close</button></div>`;
   showModal(panel);
   document.getElementById('closeDet').addEventListener('click', hideModal);
 }
 
-/* Box area message */
-function renderBoxAreaMessage(){
-  const el = document.getElementById('boxArea');
-  el.innerHTML = '<div class="small muted">Enter Box ID above and click "Open Box" to view contents. There is no default open; you must provide a Box ID.</div>';
-  // if a box is opened, openBox will replace content
-}
+/* Reception */
+document.getElementById('fetchBox').addEventListener('click', ()=>{
+  const id = document.getElementById('boxInput').value.trim(); if(!id){ alert('Enter Box ID'); return; }
+  const box = state.boxes.find(b=>b.box_id===id); if(!box) return alert('Box not found in demo');
+  openBox(id);
+});
+function renderBoxMessage(){ const el=document.getElementById('boxArea'); el.innerHTML = '<div class="small muted">Enter Box ID above and click Open Box to view contents.</div>'; }
 
-/* Reception flows */
 function openBox(boxId){
-  const box = state.boxes.find(b=>b.box_id===boxId);
-  if(!box) return alert('Box not found or not ready. Check Box ID with Operations.');
-  const panel = document.createElement('div');
-  panel.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <div><div style="font-weight:700">${box.box_id}</div><div class="small muted">${box.delivered_by} • ${new Date(box.shipment_date).toLocaleString()}</div></div>
-      <div><button class="action" id="closeBox">Close</button></div>
-    </div>
+  const box = state.boxes.find(b=>b.box_id===boxId); if(!box) return;
+  const panel = document.createElement('div'); panel.className='card';
+  panel.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+    <div><div style="font-weight:700">${box.box_id}</div><div class="small muted">${box.delivered_by} • ${new Date(box.shipment_date).toLocaleString()}</div></div>
+    <div><button class="action" id="closeBox">Close</button></div></div>
     <div id="boxItemsArea"></div>
-    <div style="margin-top:12px;display:flex;gap:8px;">
-      <button class="btn" id="confirmBox">Confirm box received</button>
-      <button class="btn secondary" id="manualAddBtn">Add manual item</button>
-    </div>
-  `;
+    <div style="margin-top:12px;display:flex;gap:8px"><button class="btn" id="confirmBox">Confirm box received</button><button class="btn secondary" id="manualAddBtn">Add manual item</button></div>`;
   showModal(panel);
-  renderBoxItems(box);
   document.getElementById('closeBox').addEventListener('click', hideModal);
   document.getElementById('confirmBox').addEventListener('click', ()=>{ confirmBox(box.box_id); hideModal(); });
   document.getElementById('manualAddBtn').addEventListener('click', ()=> showManualAdd(box.box_id));
+  renderBoxItems(box);
 }
+
 function renderBoxItems(box){
-  const area = document.getElementById('boxItemsArea');
-  area.innerHTML = '';
+  const area=document.getElementById('boxItemsArea'); area.innerHTML='';
   box.items.forEach(it=>{
-    const delivered = it.delivered_qty;
-    const requested = it.requested_qty;
-    const presentInVan = !!state.parts.find(p=>p.part_id===it.part_id);
-    const row = document.createElement('div');
-    row.style.padding='8px'; row.style.borderBottom='1px solid #f1f5f9'; row.style.display='flex'; row.style.justifyContent='space-between';
-    row.innerHTML = `
-      <div>
-        <div><strong>${it.part_id}</strong> • ${it.description}${it.manual? ' (manual entry)':''}</div>
-        <div class="small muted">WO ${it.wo_id||'—'} • Requested ${requested} • Delivered ${delivered} • In van: ${presentInVan? 'Yes':'No'}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button class="action" data-act="receive" data-part="${it.part_id}" data-box="${box.box_id}">Receive</button>
-        <button class="action" data-act="missing" data-part="${it.part_id}" data-box="${box.box_id}">Mark Missing</button>
-        <button class="action" data-act="damage" data-part="${it.part_id}" data-box="${box.box_id}">Damaged</button>
-      </div>
-    `;
+    const row=document.createElement('div'); row.style.padding='8px'; row.style.borderBottom='1px solid #f1f5f9'; row.style.display='flex'; row.style.justifyContent='space-between';
+    row.innerHTML = `<div><strong>${it.part_id}</strong> • ${it.description}${it.manual? ' (manual)': ''}<div class="small muted">WO ${it.wo_id||'—'} • Requested ${it.requested_qty} • Delivered ${it.delivered_qty}</div></div>
+      <div style="display:flex;gap:8px"><button class="action" data-act="receive" data-part="${it.part_id}" data-box="${box.box_id}">Receive</button><button class="action" data-act="missing" data-part="${it.part_id}" data-box="${box.box_id}">Missing</button><button class="action" data-act="damage" data-part="${it.part_id}" data-box="${box.box_id}">Damaged</button></div>`;
     area.appendChild(row);
   });
-  // attach handlers
   area.querySelectorAll('button[data-act]').forEach(b=>{
     b.addEventListener('click', ()=>{
-      const act = b.getAttribute('data-act'), pid = b.getAttribute('data-part'), boxid = b.getAttribute('data-box');
-      if(act==='receive'){ receiveFromBoxWithMatching(pid, boxid); renderBoxItems(box); render(); }
-      if(act==='missing'){ markMissingFromBox(pid, boxid); renderBoxItems(box); render(); }
-      if(act==='damage'){ reportDamageFromBox(pid, boxid); renderBoxItems(box); render(); }
+      const act=b.getAttribute('data-act'), pid=b.getAttribute('data-part'), boxid=b.getAttribute('data-box');
+      if(act==='receive'){ receiveFromBox(pid,boxid); renderBoxItems(box); render(); }
+      if(act==='missing'){ startMissingFlow(pid,boxid,box); renderBoxItems(box); render(); }
+      if(act==='damage'){ startDamageFlow(pid,boxid,box); renderBoxItems(box); render(); }
     });
   });
 }
 
-/* Matching algorithm: deduct delivered_qty from earliest on_orders by ETA (outstanding_qty) */
-function receiveFromBoxWithMatching(part_id, box_id){
-  const box = state.boxes.find(b=>b.box_id===box_id);
-  if(!box) return;
-  const it = box.items.find(i=>i.part_id===part_id);
-  if(!it) return;
+/* Receive */
+function receiveFromBox(part_id, box_id){
+  const box=state.boxes.find(b=>b.box_id===box_id); if(!box) return;
+  const it=box.items.find(i=>i.part_id===part_id); if(!it) return;
   const qty = Math.max(0, it.delivered_qty || 0);
-  if(qty<=0) { showToast('No delivered qty to receive'); return; }
-
+  if(qty<=0){ showToast('No delivered qty to receive'); return; }
   let part = state.parts.find(p=>p.part_id===part_id);
   if(!part){
-    part = {
-      part_id, part_name:part_id, description: it.description || '', total_qty:0,
-      breakdown:{available:0,on_hand_delivered_today:0,allocated:0},
-      on_orders: [], price:{amount:0,currency:'EUR',incl_vat:true}, status:'ON_HAND', linked_WOs:[], last_updated:new Date().toISOString()
-    };
+    part = { part_id, description: it.description||'', total_qty:0, breakdown:{available:0,on_hand:0,allocated:0}, on_orders:[], price:{amount:0,currency:'EUR',incl_vat:true}, status:'ON_HAND' };
     state.parts.push(part);
   }
-
-  let remaining = qty;
-  const sortedOrders = (part.on_orders || []).slice().sort((a,b)=> new Date(a.eta)-new Date(b.eta));
-  for(const ord of sortedOrders){
-    if(remaining<=0) break;
-    if(ord.outstanding_qty>0){
-      const take = Math.min(ord.outstanding_qty, remaining);
-      ord.outstanding_qty -= take;
-      remaining -= take;
-      state.pending.push({type:'FULFILL_ON_ORDER', part_id, order_id:ord.order_id, qty:take, box_id, timestamp:new Date().toISOString()});
-    }
-  }
-  if(remaining>0){
-    const ex = {id:'E-'+Date.now(), part_id, qty:remaining, box_id, note:'Extra delivered not matched to on_orders', timestamp:new Date().toISOString()};
-    state.exceptions.push(ex);
-    state.pending.push({type:'EXCEPTION_MANUAL_ADD', ex});
-    showToast('Unmatched qty recorded as exception');
-  }
-
-  part.total_qty = (part.total_qty || 0) + qty;
-  part.breakdown.on_hand_delivered_today = (part.breakdown.on_hand_delivered_today || 0) + qty;
-  part.breakdown.available = Math.max(0, (part.breakdown.available||0) + qty);
-  part.status = 'ON_HAND_DELIVERED_TODAY';
-  part.last_updated = new Date().toISOString();
-
+  part.total_qty = (part.total_qty||0) + qty;
+  part.breakdown.on_hand = (part.breakdown.on_hand||0) + qty;
+  part.breakdown.available = (part.breakdown.available||0) + qty;
+  part.status = 'ON_HAND';
   it.delivered_qty = 0;
-  saveState(state);
-  pushPending({action:'RECEIVE_BOX', part_id, qty, box_id});
-  render();
+  state.pending.push({type:'RECEIVE',part_id,box_id,qty,ts:new Date().toISOString()});
+  saveState(state); showToast('Received');
 }
 
-function markMissingFromBox(part_id, box_id){
-  const reason = prompt('Optional note for missing item:','Not found in box');
-  const photo = prompt('Optional photo URL (demo):','');
-  const rec = {id:'M-'+Date.now(), part_id, box_id, note:reason||'', photo: photo||null, timestamp:new Date().toISOString(), technician:state.technician_id};
-  state.exceptions.push({type:'MISSING', ...rec});
-  state.pending.push({type:'MISSING_REPORT', rec});
-  showToast('Missing reported');
-  saveState(state);
+/* Missing two-step */
+function startMissingFlow(part_id, box_id, box){
+  const panel=document.createElement('div'); panel.className='card';
+  panel.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>Confirm Missing: ${part_id}</strong><div class="small muted">This will create a Missing report and notify Warehouse</div></div><div><button class="action" id="closeMiss">Close</button></div></div>
+    <div style="display:grid;gap:8px;margin-top:8px"><textarea id="miss_note" placeholder="Optional note"></textarea><div style="display:flex;gap:8px"><button class="btn" id="confirmMissBtn">Confirm Missing</button><button class="btn secondary" id="cancelMiss">Cancel</button></div></div>`;
+  showModal(panel);
+  document.getElementById('closeMiss').addEventListener('click', hideModal);
+  document.getElementById('cancelMiss').addEventListener('click', hideModal);
+  document.getElementById('confirmMissBtn').addEventListener('click', ()=>{
+    const note=document.getElementById('miss_note').value||'';
+    const rec={ id:'M-'+Date.now(), part_id, box_id, note, technician:state.technician_id, ts:new Date().toISOString() };
+    state.exceptions.push({type:'MISSING', ...rec});
+    state.pending.push({type:'MISSING', rec});
+    saveState(state); hideModal(); showToast('Missing reported');
+  });
 }
 
-function reportDamageFromBox(part_id, box_id){
-  const photo = prompt('Photo URL (required for damage):','');
-  if(!photo) return alert('Photo required for damage report (demo)');
-  const rec = {id:'D-'+Date.now(), part_id, box_id, photo, timestamp:new Date().toISOString(), technician:state.technician_id};
+/* Damage flow requires photo */
+function startDamageFlow(part_id, box_id, box){
+  const photo = prompt('Enter photo URL (required) showing the damage (demo):','');
+  if(!photo) return alert('Photo required');
+  const rec={ id:'D-'+Date.now(), part_id, box_id, photo, technician:state.technician_id, ts:new Date().toISOString() };
   state.exceptions.push({type:'DAMAGED', ...rec});
-  state.pending.push({type:'DAMAGE_REPORT', rec});
+  state.pending.push({type:'DAMAGED', rec});
   const part = state.parts.find(p=>p.part_id===part_id);
-  if(part){
-    part.status='DAMAGED';
-    part.qc_photos = part.qc_photos || [];
-    part.qc_photos.push(photo);
-    part.last_updated = new Date().toISOString();
-  }
-  saveState(state);
-  showToast('Damage reported');
+  if(part){ part.status='DAMAGED'; part.qc_photos = part.qc_photos || []; part.qc_photos.push(photo); }
+  saveState(state); showToast('Damage reported');
 }
 
-/* Manual add item in box */
+/* Manual add */
 function showManualAdd(box_id){
-  const panel = document.createElement('div');
-  panel.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><strong>Add manual item to ${box_id}</strong><button class="action" id="closeAdd">Close</button></div>
-    <div style="display:grid;gap:8px;">
-      <input id="m_part" placeholder="Part ID (scan or type)"/>
-      <input id="m_desc" placeholder="Description (optional)"/>
-      <input id="m_qty" type="number" placeholder="Qty" value="1"/>
-      <input id="m_price" placeholder="Price (optional)"/>
-      <textarea id="m_note" placeholder="Note (optional)"></textarea>
-      <div style="display:flex;gap:8px"><button class="btn" id="m_add">Add</button><button class="btn secondary" id="m_cancel">Cancel</button></div>
-    </div>
-  `;
+  const panel=document.createElement('div'); panel.className='card';
+  panel.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>Add manual item to ${box_id}</strong></div><div><button class="action" id="closeAdd">Close</button></div></div>
+    <div style="display:grid;gap:8px;margin-top:8px"><input id="m_part" placeholder="Part ID (scan or type)"/><input id="m_desc" placeholder="Description (optional)"/><input id="m_qty" type="number" value="1"/><textarea id="m_note" placeholder="Note (optional)"></textarea>
+    <div style="display:flex;gap:8px"><button class="btn" id="m_add">Add</button><button class="btn secondary" id="m_cancel">Cancel</button></div></div>`;
   showModal(panel);
   document.getElementById('closeAdd').addEventListener('click', hideModal);
   document.getElementById('m_cancel').addEventListener('click', hideModal);
   document.getElementById('m_add').addEventListener('click', ()=>{
-    const pid = document.getElementById('m_part').value.trim();
-    if(!pid) return alert('Part ID required');
-    const desc = document.getElementById('m_desc').value.trim();
-    const qty = parseInt(document.getElementById('m_qty').value || '1',10);
-    const price = document.getElementById('m_price').value.trim();
-    const note = document.getElementById('m_note').value.trim();
-    const box = state.boxes.find(b=>b.box_id===box_id);
-    if(!box) return alert('Box not found');
-    box.items.push({part_id:pid, description: desc||'(manual)', wo_id:null, requested_qty:0, delivered_qty:qty, manual:true});
-    const ex = {id:'EX-'+Date.now(), type:'MANUAL_ADD', part_id:pid, qty, note, box_id, timestamp:new Date().toISOString()};
-    state.exceptions.push(ex);
-    state.pending.push({type:'MANUAL_ADD', ex});
-    saveState(state);
-    hideModal();
-    openBox(box_id);
-    showToast('Manual item added');
+    const pid=document.getElementById('m_part').value.trim(); if(!pid) return alert('Part ID required');
+    const desc=document.getElementById('m_desc').value.trim(); const qty=parseInt(document.getElementById('m_qty').value||'1',10); const note=document.getElementById('m_note').value.trim();
+    const box=state.boxes.find(b=>b.box_id===box_id); if(!box) return alert('Box not found');
+    box.items.push({part_id:pid, description:desc||'(manual)', wo_id:null, requested_qty:0, delivered_qty:qty, manual:true});
+    const ex={id:'EX-'+Date.now(), type:'MANUAL_ADD', part_id:pid, qty, note, box_id, ts:new Date().toISOString()};
+    state.exceptions.push(ex); state.pending.push({type:'MANUAL_ADD', ex});
+    saveState(state); hideModal(); openBox(box_id); showToast('Manual item added');
   });
 }
 
-/* Confirm box */
+/* Confirm box (submit) */
 function confirmBox(box_id){
-  const box = state.boxes.find(b=>b.box_id===box_id);
-  if(!box) return;
-  box.status='CONFIRMED'; box.confirmed_at = new Date().toISOString();
-  state.pending.push({type:'CONFIRM_BOX', box_id, timestamp:new Date().toISOString()});
-  saveState(state);
-  showToast('Box confirmed');
+  const box=state.boxes.find(b=>b.box_id===box_id); if(!box) return;
+  box.status='CONFIRMED'; box.confirmed_at=new Date().toISOString();
+  state.pending.push({type:'CONFIRM_BOX', box_id, ts:new Date().toISOString()});
+  saveState(state); showToast('Box confirmed (queued)');
 }
 
-/* Pending & sync simulation */
-function pushPending(entry){
-  state.pending = state.pending || [];
-  state.pending.push(entry);
-  saveState(state);
-}
-function showToast(msg){ const t=document.getElementById('toast'); t.innerText=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2000); }
+/* RDD creation */
+document.getElementById('createRDD').addEventListener('click', ()=>{
+  const doc='RDD-'+Date.now(); state.rdds = state.rdds||[]; state.rdds.push({doc,status:'DRAFT',created:new Date().toISOString(),tech:state.technician_id}); state.pending.push({type:'CREATE_RDD',doc,ts:new Date().toISOString()}); saveState(state); render(); showToast('RDD draft created');
+});
+function renderRDDArea(){ const el=document.getElementById('rddArea'); const rows=(state.rdds||[]).map(r=>`<div style="padding:8px;border-bottom:1px solid #f1f5f9"><strong>${r.doc}</strong> • ${r.status} • ${new Date(r.created).toLocaleString()}</div>`).join(''); el.innerHTML = rows || '<div class="small muted">No RDDs in demo.</div>'; }
+
+/* Sync & reset */
 document.getElementById('syncBtn').addEventListener('click', ()=>{
   if(!(state.pending && state.pending.length>0)){ localStorage.setItem('lastSync', new Date().toLocaleString()); render(); showToast('Already synced'); return; }
-  showToast('Syncing...');
-  setTimeout(()=>{
-    state.pending = [];
-    localStorage.setItem('lastSync', new Date().toLocaleString());
-    saveState(state);
-    render();
-    showToast('Sync complete');
-  },800);
+  showToast('Syncing...'); setTimeout(()=>{ state.pending=[]; localStorage.setItem('lastSync', new Date().toLocaleString()); saveState(state); render(); showToast('Sync complete'); },900);
 });
+document.getElementById('resetBtn').addEventListener('click', ()=>{ if(!confirm('Reset demo?')) return; localStorage.removeItem(LS_KEY); state=loadState(); render(); });
 
-/* Buttons */
-document.getElementById('resetBtn').addEventListener('click', ()=>{
-  if(!confirm('Reset demo data?')) return;
-  localStorage.removeItem(LS_KEY);
-  state = loadState();
-  render();
-});
-
-/* Tab handling */
-document.querySelectorAll('.tab').forEach(t=>{
-  t.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    const tab = t.getAttribute('data-tab');
-    document.getElementById('view-van').style.display = tab==='van' ? '' : 'none';
-    document.getElementById('view-reception').style.display = tab==='reception' ? '' : 'none';
-  });
-});
-
-/* Box open from input: require valid Box ID */
-document.getElementById('fetchBox').addEventListener('click', ()=>{
-  const id = document.getElementById('boxInput').value.trim();
-  if(!id) return alert('Enter Box ID');
-  const box = state.boxes.find(b=>b.box_id===id);
-  if(!box) return alert('Box not found or not ready. Contact Warehouse.');
-  openBox(id);
-});
-
-/* Modal helpers */
-function showModal(content){
-  const m = document.getElementById('modal');
-  m.innerHTML = '<div class="modal"><div class="panel" id="modalPanel"></div></div>';
-  document.getElementById('modalPanel').appendChild(content);
-  m.style.display='block';
-}
+/* Modal & toast helpers */
+function showModal(content){ const m=document.getElementById('modal'); m.innerHTML = '<div class="modal"><div class="card" id="modalCard"></div></div>'; document.getElementById('modalCard').appendChild(content); m.style.display='block'; }
 function hideModal(){ const m=document.getElementById('modal'); m.style.display='none'; m.innerHTML=''; saveState(state); }
+function showToast(msg){ const t=document.getElementById('toast'); t.innerText=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2000); }
 
-/* Init */
+/* init */
 render();
 
 </script>
