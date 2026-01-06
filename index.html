@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Van Stock & Reception Prototype (v2)</title>
+  <title>Van Stock & Reception — Updated View</title>
   <style>
     :root{
       --bg:#f4f6f8; --card:#fff; --muted:#6b7280; --accent:#0b69ff;
@@ -28,7 +28,7 @@
     .row:last-child{border-bottom:none}
     .part-id{font-weight:700;font-size:16px;color:#0b2545}
     .desc{color:#334155;font-size:14px}
-    .value-chip{background:var(--chip-bg);padding:6px 10px;border-radius:8px;font-weight:700;color:var(--info);font-size:13px}
+    .value-chip{background:var(--chip-bg);padding:6px 10px;border-radius:8px;font-weight:700;color:var(--info);font-size:13px;min-width:48px;text-align:center}
     .badge{padding:6px 10px;border-radius:999px;color:white;font-weight:700;font-size:13px}
     .status-available{background:var(--success)} .status-onhand{background:var(--info)}
     .status-allocated{background:var(--warning);color:#111} .status-reserved{background:var(--purple)}
@@ -45,6 +45,8 @@
     .snackbar{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:8px;display:flex;gap:12px;align-items:center;z-index:1000}
     .snackbar button{background:transparent;border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer}
     .pendingCounter{background:#fff;border-radius:999px;padding:6px 10px;border:1px solid #e6eefc;font-weight:700;color:var(--muted)}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:6px 8px;text-align:left;border-bottom:1px solid #f1f5f9;font-size:13px}
   </style>
 </head>
 <body>
@@ -95,35 +97,25 @@
       </section>
     </main>
 
-    <footer>Prototype (Dynamics 365 Field Service Mobile compatible UI controls)</footer>
+    <footer>Prototype (Dynamics 365 Field Service Mobile compatible UI)</footer>
   </div>
 
   <div id="modalRoot" style="display:none"></div>
-  <div id="toast" style="display:none;position:fixed;right:16px;bottom:16px;background:#0f172a;color:#fff;padding:12px;border-radius:8px;"></div>
-
-  <!-- Snackbar / Undo -->
-  <div id="snackbar" class="snackbar" style="display:none">
-    <div id="snackMsg">Action performed</div>
-    <button id="undoBtn">Undo</button>
-    <button id="closeSnack" style="background:transparent;border:none;color:#fff;opacity:0.8">✕</button>
-  </div>
+  <div id="snackbar" class="snackbar" style="display:none"><div id="snackMsg">Action performed</div><button id="undoBtn">Undo</button><button id="closeSnack" style="background:transparent;border:none;color:#fff;opacity:0.8">✕</button></div>
 
 <script>
-/* Updated prototype improvements:
-   - Debounced search
-   - Pending counter in header
-   - Undo snackbar for last action (Receive / Missing / Damaged)
-   - Damaged flow uses native file picker and requires photo before submit
-   - Missing flow is a two-step modal with reason and note, creates a mock Ops ticket
-   - Part details and Box contents open as modal overlay
+/* Updated prototype focusing on:
+   - Part row shows only numeric chips: Available, On Hand, Allocated, On Order
+   - Details modal: On Order shows only qty & ETA; Available & On Hand show multiple linked WOs
+   - Keep reception modal behavior & validation
 */
 
 const SAMPLE = {
   technician_id: "T1",
   parts: [
-    { part_id:"00248240", description:"Cable", breakdown:{available:2,on_hand:1,allocated:0}, on_orders:[{order_id:"O-1001",outstanding_qty:1,eta:"2026-06-22",source:"REPLENISH"}], price:{amount:12.5,currency:"EUR",incl_vat:true}, status:"ON_HAND", linked_WOs:[{wo_id:"WO123",booking_date:"2026-06-01"}]},
+    { part_id:"00248240", description:"Cable", breakdown:{available:2,on_hand:1,allocated:0}, on_orders:[{order_id:"O-1001",outstanding_qty:1,eta:"2026-06-22"},{order_id:"O-1003",outstanding_qty:1,eta:"2026-07-01"}], price:{amount:12.5,currency:"EUR",incl_vat:true}, status:"ON_HAND", linked_WOs:[{wo_id:"WO123",booking_date:"2026-06-01"},{wo_id:"WO130",booking_date:"2026-06-05"}]},
     { part_id:"0008045", description:"Motor", breakdown:{available:0,on_hand:0,allocated:1}, on_orders:[], price:{amount:85.0,currency:"EUR",incl_vat:true}, status:"ALLOCATED", linked_WOs:[{wo_id:"WO200",booking_date:"2026-06-03"}]},
-    { part_id:"00169216", description:"Fan", breakdown:{available:1,on_hand:0,allocated:0}, on_orders:[{order_id:"O-2002",outstanding_qty:2,eta:"2026-06-27",source:"REPLENISH"}], price:{amount:45.0,currency:"EUR",incl_vat:true}, status:"AVAILABLE", linked_WOs:[]}
+    { part_id:"00169216", description:"Fan", breakdown:{available:1,on_hand:0,allocated:0}, on_orders:[{order_id:"O-2002",outstanding_qty:2,eta:"2026-06-27"}], price:{amount:45.0,currency:"EUR",incl_vat:true}, status:"AVAILABLE", linked_WOs:[]}
   ],
   boxes: [
     { box_id:"BOX123", shipment_date:"2026-06-01T07:30:00Z", delivered_by:"WH-DE", status:"UNCONFIRMED", items:[
@@ -137,31 +129,29 @@ const SAMPLE = {
   opsTickets: []
 };
 
-const LS_KEY = "van_v7";
+const LS_KEY = "van_v8";
 function loadState(){ const raw=localStorage.getItem(LS_KEY); if(raw) return JSON.parse(raw); localStorage.setItem(LS_KEY,JSON.stringify(SAMPLE)); return JSON.parse(localStorage.getItem(LS_KEY)); }
 function saveState(s){ localStorage.setItem(LS_KEY,JSON.stringify(s)); updatePendingCount(); }
 
 let state = loadState();
-let lastAction = null; // for undo
 let undoTimer = null;
-let searchDebounceTimer = null;
 
 function render(){ document.getElementById('lastSync').innerText = "Last sync: " + (localStorage.getItem('lastSync') || '—'); renderVanList(); renderBoxMessage(); updatePendingCount(); }
 function updatePendingCount(){ const el=document.getElementById('pendingCount'); const n= state.pending ? state.pending.length : 0; el.innerText = `Pending: ${n}`; saveState(state); }
 
 function renderVanList(){
-  const container=document.getElementById('vanList'); container.innerHTML='';
-  const q=document.getElementById('searchInput').value.trim().toLowerCase();
-  const filter=document.getElementById('filterSelect').value;
+  const container = document.getElementById('vanList'); container.innerHTML='';
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const filter = document.getElementById('filterSelect').value;
   state.parts.forEach(p=>{
     if(q && !(p.part_id.toLowerCase().includes(q) || p.description.toLowerCase().includes(q))) return;
     if(filter==='available' && p.breakdown.available<=0) return;
     if(filter==='onhand' && p.breakdown.on_hand<=0) return;
     if(filter==='allocated' && p.breakdown.allocated<=0) return;
     if(filter==='onorder' && (!p.on_orders || p.on_orders.length===0)) return;
-    const row=document.createElement('div'); row.className='row';
+    const row = document.createElement('div'); row.className='row';
     row.innerHTML = `
-      <div style="flex:0 0 360px">
+      <div style="flex:0 0 320px">
         <div class="part-id">${p.part_id}</div>
         <div class="desc">${p.description}</div>
       </div>
@@ -169,7 +159,7 @@ function renderVanList(){
         <div class="value-chip" title="Available">${p.breakdown.available}</div>
         <div class="value-chip" title="On Hand">${p.breakdown.on_hand}</div>
         <div class="value-chip" title="Allocated">${p.breakdown.allocated}</div>
-        <div style="min-width:140px">${renderOnOrderCompact(p)}</div>
+        <div class="value-chip" title="On Order">${(p.on_orders||[]).reduce((a,o)=>a+o.outstanding_qty,0)}</div>
       </div>
       <div style="margin-left:auto;text-align:right">
         <div style="margin-bottom:6px">${renderStatus(p)}</div>
@@ -180,15 +170,6 @@ function renderVanList(){
   container.querySelectorAll('.link').forEach(a=>a.addEventListener('click', ()=> openPartDetail(a.getAttribute('data-id'))));
 }
 
-function renderOnOrderCompact(p){
-  const totalOnOrder=(p.on_orders||[]).reduce((a,o)=>a+o.outstanding_qty,0);
-  if(totalOnOrder===0) return '';
-  const sorted=(p.on_orders||[]).slice().sort((a,b)=>new Date(a.eta)-new Date(b.eta));
-  const first=sorted[0], second=sorted[1];
-  let html=`<div style="font-size:13px;color:#0b2545"><strong>On Order:</strong> ${totalOnOrder}</div>`;
-  html += `<div class="small muted">${formatDate(first.eta)} (${first.outstanding_qty})${second? ' • '+formatDate(second.eta)+' ('+second.outstanding_qty+')':''}${p.on_orders.length>2? ' • +'+(p.on_orders.length-2)+' more':''}</div>`;
-  return html;
-}
 function renderStatus(p){
   if(p.status==='AVAILABLE') return `<span class="badge status-available">Available</span>`;
   if(p.status==='ON_HAND') return `<span class="badge status-onhand">On Hand</span>`;
@@ -198,40 +179,69 @@ function renderStatus(p){
 }
 
 function openPartDetail(partId){
-  const p=state.parts.find(x=>x.part_id===partId); if(!p) return;
-  const root=document.getElementById('modalRoot'); root.innerHTML=''; const overlay=document.createElement('div'); overlay.className='modal-overlay';
-  const modal=document.createElement('div'); modal.className='modal';
-  let html=`<div style="display:flex;justify-content:space-between;align-items:center"><div class="panel-title">${p.part_id} — ${p.description}</div><div><button class="action" id="closeDetail">Close</button></div></div>`;
+  const p = state.parts.find(x=>x.part_id===partId); if(!p) return;
+  const root = document.getElementById('modalRoot'); root.innerHTML=''; const overlay = document.createElement('div'); overlay.className='modal-overlay';
+  const modal = document.createElement('div'); modal.className='modal';
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center"><div class="panel-title">${p.part_id} — ${p.description}</div><div><button class="action" id="closeDetail">Close</button></div></div>`;
   html += `<div style="display:grid;gap:12px;margin-top:12px">`;
-  html += `<div><strong>Available</strong><div class="small">${p.breakdown.available}</div>${p.linked_WOs&&p.linked_WOs.length>0? `<div class="small muted">Linked WOs: ${p.linked_WOs.map(w=>w.wo_id+' ('+w.booking_date+')').join(', ')}</div>`:''}</div>`;
-  html += `<div><strong>On Hand</strong><div class="small">${p.breakdown.on_hand}</div>${p.linked_WOs&&p.linked_WOs.length>0? `<div class="small muted">Linked WOs: ${p.linked_WOs.map(w=>w.wo_id+' ('+w.booking_date+')').join(', ')}</div>`:'<div class="small muted">Received via Reception (no linked Work Order)</div>'}</div>`;
-  html += `<div><strong>Allocated</strong><div class="small">${p.breakdown.allocated}</div></div>`;
+  // Available with linked WOs list (multiple)
+  html += `<div><strong>Available: </strong><span class="value-chip">${p.breakdown.available}</span>`;
+  if(p.linked_WOs && p.linked_WOs.length>0){
+    html += `<div class="small muted" style="margin-top:6px">Linked Work Orders (Available):</div><div style="margin-top:6px">`;
+    p.linked_WOs.forEach(w=>{
+      html += `<div style="padding:6px;border-radius:6px;background:#f8fafc;margin-bottom:6px;font-size:13px">${w.wo_id} • ${w.booking_date}</div>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+  // On Hand with linked WOs (multiple) or note if none
+  html += `<div><strong>On Hand: </strong><span class="value-chip">${p.breakdown.on_hand}</span>`;
+  if(p.linked_WOs && p.linked_WOs.length>0){
+    html += `<div class="small muted" style="margin-top:6px">Linked Work Orders (On Hand):</div><div style="margin-top:6px">`;
+    p.linked_WOs.forEach(w=>{
+      html += `<div style="padding:6px;border-radius:6px;background:#f8fafc;margin-bottom:6px;font-size:13px">${w.wo_id} • ${w.booking_date}</div>`;
+    });
+    html += `</div>`;
+  } else {
+    html += `<div class="small muted" style="margin-top:6px">Received via Reception (no linked Work Order)</div>`;
+  }
+  html += `</div>`;
+  // Allocated simple display
+  html += `<div><strong>Allocated: </strong><span class="value-chip">${p.breakdown.allocated}</span>`;
+  if(p.status==='ALLOCATED' && p.linked_WOs && p.linked_WOs.length>0){
+    html += `<div class="small muted" style="margin-top:6px">Allocated to: ${p.linked_WOs.map(w=>w.wo_id+' ('+w.booking_date+')').join(', ')}</div>`;
+  }
+  html += `</div>`;
+  // On Order: only qty + ETA info
   html += `<div><strong>On Order</strong>`;
   if(p.on_orders && p.on_orders.length>0){
-    html += `<table style="width:100%;margin-top:6px;border-collapse:collapse"><thead><tr><th style="text-align:left">Order</th><th style="text-align:left">Outstanding</th><th style="text-align:left">ETA</th><th style="text-align:left">Source</th></tr></thead><tbody>`;
-    p.on_orders.slice().sort((a,b)=>new Date(a.eta)-new Date(b.eta)).forEach(o=> html+=`<tr><td>${o.order_id}</td><td>${o.outstanding_qty}</td><td>${formatDate(o.eta)}</td><td>${o.source}</td></tr>`);
+    html += `<table style="margin-top:6px"><thead><tr><th>Qty</th><th>ETA</th></tr></thead><tbody>`;
+    p.on_orders.slice().sort((a,b)=>new Date(a.eta)-new Date(b.eta)).forEach(o=>{
+      html += `<tr><td>${o.outstanding_qty}</td><td>${formatDate(o.eta)}</td></tr>`;
+    });
     html += `</tbody></table>`;
-  } else html += `<div class="small muted">No on orders</div>`;
+  } else html += `<div class="small muted" style="margin-top:6px">No on orders</div>`;
   html += `</div></div>`;
-  html += `<div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="closeDetail2">Close</button>${p.breakdown.on_hand>0? '<button class="btn secondary" id="openRec">Open Reception</button>':''}</div>`;
+  html += `<div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="closeDetail2">Close</button>${p.breakdown.on_hand>0 ? '<button class="btn secondary" id="openRec">Open Reception</button>' : ''}</div>`;
+
   modal.innerHTML = html; overlay.appendChild(modal); root.appendChild(overlay); root.style.display='block';
   document.getElementById('closeDetail').addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; });
   document.getElementById('closeDetail2').addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; });
-  const rbtn=document.getElementById('openRec'); if(rbtn) rbtn.addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; switchTab('reception'); document.getElementById('boxInput').focus(); });
+  const rbtn = document.getElementById('openRec'); if(rbtn) rbtn.addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; switchTab('reception'); document.getElementById('boxInput').focus(); });
 }
 
 /* Reception */
 document.getElementById('fetchBox').addEventListener('click', ()=>{
-  const id=document.getElementById('boxInput').value.trim(); if(!id) return alert('Enter Box ID');
-  const box = state.boxes.find(b=>b.box_id===id); if(!box) return alert('Box not found in demo');
+  const id = document.getElementById('boxInput').value.trim(); if(!id) return alert('Enter Box ID');
+  const box = state.boxes.find(b=>b.box_id===id); if(!box) return alert('Box not found (demo)');
   openBoxModal(id);
 });
 
 function openBoxModal(boxId){
   const box = state.boxes.find(b=>b.box_id===boxId); if(!box) return;
-  const root=document.getElementById('modalRoot'); root.innerHTML=''; const overlay=document.createElement('div'); overlay.className='modal-overlay';
-  const modal=document.createElement('div'); modal.className='modal';
-  let html=`<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:800">${box.box_id}</div><div class="small muted">${box.delivered_by} • ${new Date(box.shipment_date).toLocaleString()}</div></div><div><button class="action" id="closeBoxModal">Close</button></div></div>`;
+  const root = document.getElementById('modalRoot'); root.innerHTML=''; const overlay = document.createElement('div'); overlay.className='modal-overlay';
+  const modal = document.createElement('div'); modal.className='modal';
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:800">${box.box_id}</div><div class="small muted">${box.delivered_by} • ${new Date(box.shipment_date).toLocaleString()}</div></div><div><button class="action" id="closeBoxModal">Close</button></div></div>`;
   html += `<div id="boxItemsArea" style="margin-top:12px"></div>`;
   html += `<div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="submitBox">Submit</button><button class="btn secondary" id="manualAddBtn">Add manual item</button></div>`;
   modal.innerHTML = html; overlay.appendChild(modal); root.appendChild(overlay); root.style.display='block';
@@ -242,9 +252,9 @@ function openBoxModal(boxId){
 }
 
 function renderBoxItemsInModal(box){
-  const area=document.getElementById('boxItemsArea'); area.innerHTML='';
+  const area = document.getElementById('boxItemsArea'); area.innerHTML='';
   box.items.forEach((it, idx)=>{
-    const row=document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.padding='10px 0'; row.style.borderBottom='1px solid #f1f5f9';
+    const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.padding='10px 0'; row.style.borderBottom='1px solid #f1f5f9';
     row.innerHTML = `<div>
         <div class="part-id">${it.part_id}${it.manual? ' • Manual':''}</div>
         <div class="desc">${it.description}</div>
@@ -260,7 +270,7 @@ function renderBoxItemsInModal(box){
   area.querySelectorAll('.damageChk').forEach(chk=> chk.addEventListener('change', (e)=>{ const idx=e.target.getAttribute('data-idx'); document.getElementById('photoArea-'+idx).style.display = e.target.checked ? 'block':'none'; }));
 }
 
-/* Manual add modal */
+/* Manual add modal (keeps existing behavior) */
 function showManualAddModal(box_id){
   const root=document.getElementById('modalRoot'); root.innerHTML=''; const overlay=document.createElement('div'); overlay.className='modal-overlay';
   const modal=document.createElement('div'); modal.className='modal';
@@ -281,7 +291,7 @@ function showManualAddModal(box_id){
   });
 }
 
-/* Missing modal (two-step with reason) and Ops ticket mock */
+/* Missing modal (two-step) */
 function createMissingReport(part_id, box_id){
   const root=document.getElementById('modalRoot'); root.innerHTML=''; const overlay=document.createElement('div'); overlay.className='modal-overlay';
   const modal=document.createElement('div'); modal.className='modal';
@@ -301,8 +311,7 @@ function createMissingReport(part_id, box_id){
   document.getElementById('closeMiss').addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; });
   document.getElementById('cancelMissBtn').addEventListener('click', ()=>{ root.style.display='none'; root.innerHTML=''; });
   document.getElementById('confirmMissBtn').addEventListener('click', ()=>{
-    const reason=document.getElementById('miss_reason').value;
-    const note=document.getElementById('miss_note').value.trim();
+    const reason=document.getElementById('miss_reason').value; const note=document.getElementById('miss_note').value.trim();
     const rec={id:'M-'+Date.now(), part_id, box_id, reason, note, technician:state.technician_id, ts:new Date().toISOString()};
     state.exceptions.push({type:'MISSING', ...rec});
     const ops = { ticket_id: 'OPS-'+Date.now(), type:'RECONCILE_MISSING', part_id, box_id, reason, note, created_at:new Date().toISOString() };
@@ -310,33 +319,23 @@ function createMissingReport(part_id, box_id){
     state.pending.push({type:'MISSING_REPORT', rec});
     saveState(state);
     root.style.display='none'; root.innerHTML='';
-    showUndo('Missing reported', ()=>{ // undo: remove last missing
-      const idx = state.exceptions.findIndex(x=>x.id===rec.id);
-      if(idx>=0) state.exceptions.splice(idx,1);
-      const pidx = state.pending.findIndex(p=>p.type==='MISSING_REPORT' && p.rec && p.rec.id===rec.id);
-      if(pidx>=0) state.pending.splice(pidx,1);
-      const otidx = state.opsTickets.findIndex(t=>t.ticket_id===ops.ticket_id);
-      if(otidx>=0) state.opsTickets.splice(otidx,1);
-      saveState(state); render();
-    });
+    showUndo('Missing reported', ()=>{ const idx = state.exceptions.findIndex(x=>x.id===rec.id); if(idx>=0) state.exceptions.splice(idx,1); const pidx = state.pending.findIndex(p=>p.type==='MISSING_REPORT' && p.rec && p.rec.id===rec.id); if(pidx>=0) state.pending.splice(pidx,1); const otidx = state.opsTickets.findIndex(t=>t.ticket_id===ops.ticket_id); if(otidx>=0) state.opsTickets.splice(otidx,1); saveState(state); render(); });
   });
 }
 
-/* Submit Box - validate damaged photo (file input) and missing two-step already handled with modal confirmation */
+/* Submit box with validation for damaged file presence */
 function submitBox(box_id){
   const box = state.boxes.find(b=>b.box_id===box_id); if(!box) return;
   const area = document.getElementById('boxItemsArea'); const items = box.items;
   const payload={box_id:box.box_id, technician_id:state.technician_id, items:[]};
+  // find damaged inputs and read files async
   for(let i=0;i<items.length;i++){
     const it=items[i];
-    const areaNode=area.children[i];
     const missChk = area.querySelector(`input.missingChk[data-idx="${i}"]`);
     const dmgChk = area.querySelector(`input.damageChk[data-idx="${i}"]`);
-    const photoInput = document.getElementById('photoInput-'+i);
     if(dmgChk && dmgChk.checked){
-      const fileInput = photoInput;
+      const fileInput = document.getElementById('photoInput-'+i);
       if(!fileInput || !fileInput.files || fileInput.files.length===0){ alert('Photo required for damaged items'); return; }
-      // Read file to dataURL and store synchronously via promise
       const file = fileInput.files[0];
       const reader = new FileReader();
       reader.onload = function(e){
@@ -348,67 +347,56 @@ function submitBox(box_id){
         finalizeSubmit(box, payload);
       };
       reader.readAsDataURL(file);
-      // we must return here because finalizeSubmit will be called from onload
-      return;
+      return; // async handled in onload
     } else if(missChk && missChk.checked){
-      // Missing should already have been confirmed via modal; add to payload
       payload.items.push({part_id:it.part_id, action:'MISSING', manual_entry:!!it.manual});
     } else {
       payload.items.push({part_id:it.part_id, action:'RECEIVED', manual_entry:!!it.manual});
-      // update local stock
       let part = state.parts.find(p=>p.part_id===it.part_id);
       if(!part){ part = {part_id:it.part_id, description:it.description||'(manual)', breakdown:{available:0,on_hand:0,allocated:0}, on_orders:[], price:{amount:0,currency:'EUR',incl_vat:true}, status:'ON_HAND'}; state.parts.push(part); }
-      part.breakdown.on_hand = (part.breakdown.on_hand||0) + it.delivered_qty;
-      part.breakdown.available = (part.breakdown.available||0) + it.delivered_qty;
-      part.status='ON_HAND';
+      part.breakdown.on_hand = (part.breakdown.on_hand||0) + (it.delivered_qty||0);
+      part.breakdown.available = (part.breakdown.available||0) + (it.delivered_qty||0);
+      part.status = 'ON_HAND';
     }
   }
-  // if there were no damaged files needing async read
   finalizeSubmit(box, payload);
 }
 
 function finalizeSubmit(box, payload){
   state.pending.push({type:'DELIVERY_CONFIRM', payload, ts:new Date().toISOString()});
-  box.status='CONFIRMED';
-  saveState(state);
-  showUndo('Box submitted', ()=>{ // undo: remove last pending DELIVERY_CONFIRM
-    const idx = state.pending.map(p=>p.type).lastIndexOf('DELIVERY_CONFIRM');
-    if(idx>=0) state.pending.splice(idx,1);
-    box.status='UNCONFIRMED';
-    saveState(state); render();
-  });
+  box.status='CONFIRMED'; saveState(state);
+  showUndo('Box submitted', ()=>{ const idx = state.pending.map(p=>p.type).lastIndexOf('DELIVERY_CONFIRM'); if(idx>=0) state.pending.splice(idx,1); box.status='UNCONFIRMED'; saveState(state); render(); });
   render();
 }
 
-/* Undo snackbar logic */
+/* Undo and snackbar */
 function showUndo(message, undoFn){
-  const snack = document.getElementById('snackbar'); document.getElementById('snackMsg').innerText = message; snack.style.display='flex';
-  const undoBtn = document.getElementById('undoBtn'); const closeBtn = document.getElementById('closeSnack');
+  const snack=document.getElementById('snackbar'); document.getElementById('snackMsg').innerText = message; snack.style.display='flex';
+  const undoBtn=document.getElementById('undoBtn'); const closeBtn=document.getElementById('closeSnack');
   undoBtn.onclick = ()=>{ if(undoTimer) clearTimeout(undoTimer); snack.style.display='none'; undoFn(); };
   closeBtn.onclick = ()=>{ if(undoTimer) clearTimeout(undoTimer); snack.style.display='none'; };
   if(undoTimer) clearTimeout(undoTimer);
   undoTimer = setTimeout(()=>{ snack.style.display='none'; undoTimer=null; }, 8000);
 }
 
-/* Manual add and others are unchanged except now they use unified saveState */
-function showManualAddModal(box_id){ /* implemented earlier; leave as previous version */ }
-
-/* Sync */
+/* Sync & reset */
 document.getElementById('syncBtn').addEventListener('click', ()=>{
   if(!(state.pending && state.pending.length>0)){ localStorage.setItem('lastSync', new Date().toLocaleString()); render(); showToast('Already synced'); return; }
   showToast('Syncing...'); setTimeout(()=>{ state.pending=[]; localStorage.setItem('lastSync', new Date().toLocaleString()); saveState(state); render(); showToast('Sync complete'); },900);
 });
 document.getElementById('resetBtn').addEventListener('click', ()=>{ if(!confirm('Reset demo?')) return; localStorage.removeItem(LS_KEY); state=loadState(); render(); });
 
-/* Debounced search */
-document.getElementById('searchInput').addEventListener('input', (e)=>{
-  if(searchDebounceTimer) clearTimeout(searchDebounceTimer);
-  searchDebounceTimer = setTimeout(()=>{ renderVanList(); }, 300);
+/* Search debounce */
+let searchTimer = null;
+document.getElementById('searchInput').addEventListener('input', ()=>{
+  if(searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(()=>{ renderVanList(); }, 300);
 });
+document.getElementById('filterSelect').addEventListener('change', render);
 
-/* Helpers & small functions */
 function formatDate(d){ if(!d) return ''; const dt=new Date(d); return dt.toLocaleDateString(); }
-function showToast(msg){ const t=document.getElementById('toast'); t.innerText=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2000); }
+function showToast(msg){ alert(msg); } // simple for demo
+
 function switchTab(tab){ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active'); document.getElementById('view-van').style.display = tab==='van' ? '' : 'none'; document.getElementById('view-reception').style.display = tab==='reception' ? '' : 'none'; }
 document.getElementById('tabVan').addEventListener('click', ()=> switchTab('van'));
 document.getElementById('tabRec').addEventListener('click', ()=> switchTab('reception'));
