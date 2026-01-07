@@ -413,23 +413,28 @@
 
         .chips-container {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: var(--space-sm);
+        }
+
+        /* SINGLE CHIP - Full Width */
+        .chips-container.single-chip {
+            grid-template-columns: 1fr;
         }
 
         .chip {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: var(--space-sm) var(--space-md);
-            border-radius: var(--radius-sm);
-            font-size: var(--font-size-xs);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
             font-weight: 600;
-            border: 1px solid;
+            border: 2px solid;
         }
 
         .chip-label {
-            font-size: var(--font-size-xs);
+            font-size: var(--font-size-sm);
             font-weight: 500;
             opacity: 0.9;
             text-transform: uppercase;
@@ -437,32 +442,32 @@
         }
 
         .chip-value {
-            font-size: var(--font-size-lg);
+            font-size: var(--font-size-2xl);
             font-weight: 700;
         }
 
         .chip-available {
             background: #f3fff3;
             color: var(--success-color);
-            border-color: #d4edda;
+            border-color: #107c10;
         }
 
         .chip-onhand {
             background: #f0f6ff;
             color: var(--primary-color);
-            border-color: #cfe4ff;
+            border-color: var(--primary-color);
         }
 
         .chip-allocated {
             background: #fff8e6;
             color: #8a5c00;
-            border-color: #ffe69c;
+            border-color: #8a5c00;
         }
 
         .chip-onorder {
             background: #f8f8f8;
             color: var(--text-secondary);
-            border-color: var(--border-color);
+            border-color: var(--text-secondary);
         }
 
         /* ========================================
@@ -597,36 +602,6 @@
             color: var(--text-tertiary);
             cursor: not-allowed;
             box-shadow: none;
-        }
-
-        /* FAB - Floating Action Button */
-        .fab {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            font-size: 24px;
-            box-shadow: var(--shadow-8);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 90;
-        }
-
-        .fab:hover {
-            box-shadow: var(--shadow-16);
-            transform: scale(1.1);
-        }
-
-        .fab:active {
-            transform: scale(0.95);
         }
 
         /* ========================================
@@ -1132,24 +1107,6 @@
         }
 
         /* ========================================
-           LOADING SPINNER
-        ======================================== */
-        .spinner {
-            border: 3px solid var(--border-color);
-            border-top: 3px solid var(--primary-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: var(--space-2xl) auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* ========================================
            RESPONSIVE
         ======================================== */
         @media (min-width: 768px) {
@@ -1158,10 +1115,6 @@
                 margin: 0 auto;
                 border-radius: var(--radius-lg);
                 max-height: 90vh;
-            }
-            
-            .chips-container {
-                grid-template-columns: repeat(4, 1fr);
             }
         }
 
@@ -1363,7 +1316,7 @@
 
     <script>
         // ========================================
-        // DATA STORE - REALISTIC QUANTITIES
+        // DATA STORE
         // ========================================
         
         const PARTS_DATA = [
@@ -1476,7 +1429,7 @@
         };
 
         let currentTab = 'vanStock';
-        let currentFilter = 'all'; // NEW: Filter state
+        let currentFilter = 'all';
         let searchTerm = '';
         let filteredParts = [...PARTS_DATA];
         let currentBoxId = null;
@@ -1528,7 +1481,7 @@
         }
 
         // ========================================
-        // NEW: FILTER FUNCTIONALITY
+        // FILTER FUNCTIONALITY
         // ========================================
         
         function setFilter(filter) {
@@ -1592,36 +1545,77 @@
                 return;
             }
 
-            const html = filteredParts.map(part => `
-                <div class="part-item" onclick="openPartDetails('${part.id}')">
-                    <div class="part-content">
-                        <div class="part-header">
-                            <div class="part-id">${part.id}</div>
-                            <div class="part-status-icon">✓</div>
+            const html = filteredParts.map(part => {
+                // Render chips based on current filter
+                let chipsHTML = '';
+                let chipClass = currentFilter === 'all' ? '' : 'single-chip';
+                
+                if (currentFilter === 'all') {
+                    // Show all chips
+                    chipsHTML = `
+                        <div class="chip chip-available">
+                            <span class="chip-label">Available</span>
+                            <span class="chip-value">${part.available}</span>
                         </div>
-                        <div class="part-desc">${part.description}</div>
-                        <div class="part-price">💰 $${part.price.toFixed(2)}</div>
-                        <div class="chips-container">
-                            <div class="chip chip-available">
-                                <span class="chip-label">Available</span>
-                                <span class="chip-value">${part.available}</span>
+                        <div class="chip chip-onhand">
+                            <span class="chip-label">On Hand</span>
+                            <span class="chip-value">${part.onHand}</span>
+                        </div>
+                        <div class="chip chip-allocated">
+                            <span class="chip-label">Allocated</span>
+                            <span class="chip-value">${part.allocated}</span>
+                        </div>
+                        <div class="chip chip-onorder">
+                            <span class="chip-label">On Order</span>
+                            <span class="chip-value">${part.onOrder}</span>
+                        </div>
+                    `;
+                } else if (currentFilter === 'available') {
+                    chipsHTML = `
+                        <div class="chip chip-available">
+                            <span class="chip-label">Available</span>
+                            <span class="chip-value">${part.available}</span>
+                        </div>
+                    `;
+                } else if (currentFilter === 'onhand') {
+                    chipsHTML = `
+                        <div class="chip chip-onhand">
+                            <span class="chip-label">On Hand</span>
+                            <span class="chip-value">${part.onHand}</span>
+                        </div>
+                    `;
+                } else if (currentFilter === 'allocated') {
+                    chipsHTML = `
+                        <div class="chip chip-allocated">
+                            <span class="chip-label">Allocated</span>
+                            <span class="chip-value">${part.allocated}</span>
+                        </div>
+                    `;
+                } else if (currentFilter === 'onorder') {
+                    chipsHTML = `
+                        <div class="chip chip-onorder">
+                            <span class="chip-label">On Order</span>
+                            <span class="chip-value">${part.onOrder}</span>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="part-item" onclick="openPartDetails('${part.id}')">
+                        <div class="part-content">
+                            <div class="part-header">
+                                <div class="part-id">${part.id}</div>
+                                <div class="part-status-icon">✓</div>
                             </div>
-                            <div class="chip chip-onhand">
-                                <span class="chip-label">On Hand</span>
-                                <span class="chip-value">${part.onHand}</span>
-                            </div>
-                            <div class="chip chip-allocated">
-                                <span class="chip-label">Allocated</span>
-                                <span class="chip-value">${part.allocated}</span>
-                            </div>
-                            <div class="chip chip-onorder">
-                                <span class="chip-label">On Order</span>
-                                <span class="chip-value">${part.onOrder}</span>
+                            <div class="part-desc">${part.description}</div>
+                            <div class="part-price">💰 $${part.price.toFixed(2)}</div>
+                            <div class="chips-container ${chipClass}">
+                                ${chipsHTML}
                             </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
             container.innerHTML = html;
         }
@@ -1646,81 +1640,86 @@
                 </div>
             `;
 
-            // AVAILABLE Section with QUANTITIES
-            if (part.available > 0) {
-                bodyHtml += `
-                    <div class="detail-section">
-                        <h4>✅ Available (${part.available} total)</h4>
-                        ${part.availableWOs.length > 0 ? `
-                            <ul class="wo-list">
-                                ${part.availableWOs.map(wo => `
-                                    <li class="wo-item">
-                                        <div class="wo-info">
-                                            <span class="wo-id">${wo.woId}</span>
-                                            <div class="wo-date">📅 ${wo.bookingDate}</div>
-                                        </div>
-                                        <div class="wo-qty">${wo.qty} qty</div>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        ` : '<div class="detail-value">No linked work orders</div>'}
-                    </div>
-                `;
+            // Show sections based on current filter
+            if (currentFilter === 'all' || currentFilter === 'available') {
+                if (part.available > 0) {
+                    bodyHtml += `
+                        <div class="detail-section">
+                            <h4>✅ Available (${part.available} total)</h4>
+                            ${part.availableWOs.length > 0 ? `
+                                <ul class="wo-list">
+                                    ${part.availableWOs.map(wo => `
+                                        <li class="wo-item">
+                                            <div class="wo-info">
+                                                <span class="wo-id">${wo.woId}</span>
+                                                <div class="wo-date">📅 ${wo.bookingDate}</div>
+                                            </div>
+                                            <div class="wo-qty">${wo.qty} qty</div>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            ` : '<div class="detail-value">No linked work orders</div>'}
+                        </div>
+                    `;
+                }
             }
 
-            // ON HAND Section with QUANTITIES
-            if (part.onHand > 0) {
-                bodyHtml += `
-                    <div class="detail-section">
-                        <h4>📦 On Hand (${part.onHand} total)</h4>
-                        ${part.onHandWOs.length > 0 ? `
-                            <ul class="wo-list">
-                                ${part.onHandWOs.map(wo => `
-                                    <li class="wo-item">
-                                        <div class="wo-info">
-                                            <span class="wo-id">${wo.woId}</span>
-                                            <div class="wo-date">📅 ${wo.bookingDate}</div>
-                                        </div>
-                                        <div class="wo-qty">${wo.qty} qty</div>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        ` : '<div class="detail-value">No linked work orders</div>'}
-                    </div>
-                `;
+            if (currentFilter === 'all' || currentFilter === 'onhand') {
+                if (part.onHand > 0) {
+                    bodyHtml += `
+                        <div class="detail-section">
+                            <h4>📦 On Hand (${part.onHand} total)</h4>
+                            ${part.onHandWOs.length > 0 ? `
+                                <ul class="wo-list">
+                                    ${part.onHandWOs.map(wo => `
+                                        <li class="wo-item">
+                                            <div class="wo-info">
+                                                <span class="wo-id">${wo.woId}</span>
+                                                <div class="wo-date">📅 ${wo.bookingDate}</div>
+                                            </div>
+                                            <div class="wo-qty">${wo.qty} qty</div>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            ` : '<div class="detail-value">No linked work orders</div>'}
+                        </div>
+                    `;
+                }
             }
 
-            // ALLOCATED Section with QUANTITIES
-            if (part.allocated > 0) {
-                bodyHtml += `
-                    <div class="detail-section">
-                        <h4>🔒 Allocated (${part.allocated} total)</h4>
-                        ${part.allocatedWOs.length > 0 ? `
-                            <ul class="wo-list">
-                                ${part.allocatedWOs.map(wo => `
-                                    <li class="wo-item">
-                                        <div class="wo-info">
-                                            <span class="wo-id">${wo.woId}</span>
-                                            <div class="wo-date">📅 ${wo.bookingDate}</div>
-                                        </div>
-                                        <div class="wo-qty">${wo.qty} qty</div>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        ` : '<div class="detail-value">No linked work orders</div>'}
-                    </div>
-                `;
+            if (currentFilter === 'all' || currentFilter === 'allocated') {
+                if (part.allocated > 0) {
+                    bodyHtml += `
+                        <div class="detail-section">
+                            <h4>🔒 Allocated (${part.allocated} total)</h4>
+                            ${part.allocatedWOs.length > 0 ? `
+                                <ul class="wo-list">
+                                    ${part.allocatedWOs.map(wo => `
+                                        <li class="wo-item">
+                                            <div class="wo-info">
+                                                <span class="wo-id">${wo.woId}</span>
+                                                <div class="wo-date">📅 ${wo.bookingDate}</div>
+                                            </div>
+                                            <div class="wo-qty">${wo.qty} qty</div>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            ` : '<div class="detail-value">No linked work orders</div>'}
+                        </div>
+                    `;
+                }
             }
 
-            // ON ORDER Section
-            if (part.onOrder > 0 && part.onOrderDetails) {
-                bodyHtml += `
-                    <div class="detail-section">
-                        <h4>🚚 On Order</h4>
-                        <div class="detail-value">Quantity: ${part.onOrderDetails.qty}</div>
-                        <div class="detail-value">ETA: ${part.onOrderDetails.eta}</div>
-                    </div>
-                `;
+            if (currentFilter === 'all' || currentFilter === 'onorder') {
+                if (part.onOrder > 0 && part.onOrderDetails) {
+                    bodyHtml += `
+                        <div class="detail-section">
+                            <h4>🚚 On Order</h4>
+                            <div class="detail-value">Quantity: ${part.onOrderDetails.qty}</div>
+                            <div class="detail-value">ETA: ${part.onOrderDetails.eta}</div>
+                        </div>
+                    `;
+                }
             }
 
             document.getElementById('partDetailsBody').innerHTML = bodyHtml;
