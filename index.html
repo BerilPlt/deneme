@@ -198,7 +198,7 @@
         }
 
         /* ========================================
-           SEARCH - Enhanced Input
+           SEARCH & FILTER
         ======================================== */
         .search-container {
             padding: var(--space-lg);
@@ -210,6 +210,7 @@
             position: relative;
             display: flex;
             align-items: center;
+            margin-bottom: var(--space-md);
         }
 
         .search-icon {
@@ -236,6 +237,51 @@
             border-color: var(--primary-color);
             background: var(--surface);
             box-shadow: var(--shadow-2);
+        }
+
+        /* FILTER CHIPS */
+        .filter-chips {
+            display: flex;
+            gap: var(--space-sm);
+            overflow-x: auto;
+            padding-bottom: var(--space-xs);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .filter-chips::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-chip {
+            padding: var(--space-sm) var(--space-lg);
+            background: var(--background);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+
+        .filter-chip:hover {
+            background: var(--surface);
+            border-color: var(--primary-light);
+        }
+
+        .filter-chip.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .filter-chip-icon {
+            font-size: var(--font-size-base);
         }
 
         /* ========================================
@@ -746,11 +792,18 @@
             margin-bottom: var(--space-sm);
             border-left: 3px solid var(--primary-color);
             transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .wo-item:hover {
             background: #e8f4fd;
             transform: translateX(4px);
+        }
+
+        .wo-info {
+            flex: 1;
         }
 
         .wo-id {
@@ -766,6 +819,17 @@
             display: flex;
             align-items: center;
             gap: var(--space-xs);
+        }
+
+        .wo-qty {
+            background: var(--primary-color);
+            color: white;
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-sm);
+            font-weight: 700;
+            min-width: 50px;
+            text-align: center;
         }
 
         /* ========================================
@@ -1160,6 +1224,29 @@
                 <span class="search-icon">🔍</span>
                 <input type="text" class="search-input" placeholder="Search parts by ID or description..." id="vanSearchInput" aria-label="Search parts">
             </div>
+            <!-- FILTER CHIPS -->
+            <div class="filter-chips">
+                <div class="filter-chip active" onclick="setFilter('all')">
+                    <span class="filter-chip-icon">📦</span>
+                    All Parts
+                </div>
+                <div class="filter-chip" onclick="setFilter('available')">
+                    <span class="filter-chip-icon">✅</span>
+                    Available
+                </div>
+                <div class="filter-chip" onclick="setFilter('onhand')">
+                    <span class="filter-chip-icon">📦</span>
+                    On Hand
+                </div>
+                <div class="filter-chip" onclick="setFilter('allocated')">
+                    <span class="filter-chip-icon">🔒</span>
+                    Allocated
+                </div>
+                <div class="filter-chip" onclick="setFilter('onorder')">
+                    <span class="filter-chip-icon">🚚</span>
+                    On Order
+                </div>
+            </div>
         </div>
         <div class="page-content" id="partListContainer"></div>
     </div>
@@ -1242,7 +1329,7 @@
         </div>
     </div>
 
-    <!-- Missing Confirmation Modal - SIMPLIFIED -->
+    <!-- Missing Confirmation Modal -->
     <div class="modal-overlay" id="missingConfirmModal" role="dialog" aria-modal="true" aria-labelledby="missingConfirmTitle">
         <div class="modal">
             <div class="modal-handle"></div>
@@ -1276,7 +1363,7 @@
 
     <script>
         // ========================================
-        // DATA STORE - UPDATED WITH PRICES & ALLOCATED WOs
+        // DATA STORE - REALISTIC QUANTITIES
         // ========================================
         
         const PARTS_DATA = [
@@ -1289,18 +1376,16 @@
                 allocated: 3,
                 onOrder: 25,
                 availableWOs: [
-                    { woId: 'WO-2024-001', bookingDate: '2024-01-15' },
-                    { woId: 'WO-2024-003', bookingDate: '2024-01-18' }
+                    { woId: 'WO-2024-001', bookingDate: '2024-01-15', qty: 7 },
+                    { woId: 'WO-2024-003', bookingDate: '2024-01-18', qty: 5 }
                 ],
                 onHandWOs: [
-                    { woId: 'WO-2024-001', bookingDate: '2024-01-15' },
-                    { woId: 'WO-2024-003', bookingDate: '2024-01-18' },
-                    { woId: 'WO-2024-007', bookingDate: '2024-01-22' }
+                    { woId: 'WO-2024-001', bookingDate: '2024-01-15', qty: 7 },
+                    { woId: 'WO-2024-003', bookingDate: '2024-01-18', qty: 5 },
+                    { woId: 'WO-2024-007', bookingDate: '2024-01-22', qty: 3 }
                 ],
                 allocatedWOs: [
-                    { woId: 'WO-2024-002', bookingDate: '2024-01-16' },
-                    { woId: 'WO-2024-004', bookingDate: '2024-01-19' },
-                    { woId: 'WO-2024-008', bookingDate: '2024-01-23' }
+                    { woId: 'WO-2024-002', bookingDate: '2024-01-16', qty: 3 }
                 ],
                 onOrderDetails: { qty: 25, eta: '2024-02-10' }
             },
@@ -1308,20 +1393,21 @@
                 id: '0008045',
                 description: 'Electric Motor 3-Phase 5HP',
                 price: 1850.00,
-                available: 3,
-                onHand: 5,
+                available: 4,
+                onHand: 6,
                 allocated: 2,
                 onOrder: 10,
                 availableWOs: [
-                    { woId: 'WO-2024-005', bookingDate: '2024-01-20' }
+                    { woId: 'WO-2024-005', bookingDate: '2024-01-20', qty: 2 },
+                    { woId: 'WO-2024-011', bookingDate: '2024-01-27', qty: 2 }
                 ],
                 onHandWOs: [
-                    { woId: 'WO-2024-005', bookingDate: '2024-01-20' },
-                    { woId: 'WO-2024-009', bookingDate: '2024-01-25' }
+                    { woId: 'WO-2024-005', bookingDate: '2024-01-20', qty: 2 },
+                    { woId: 'WO-2024-009', bookingDate: '2024-01-25', qty: 2 },
+                    { woId: 'WO-2024-011', bookingDate: '2024-01-27', qty: 2 }
                 ],
                 allocatedWOs: [
-                    { woId: 'WO-2024-006', bookingDate: '2024-01-21' },
-                    { woId: 'WO-2024-010', bookingDate: '2024-01-26' }
+                    { woId: 'WO-2024-006', bookingDate: '2024-01-21', qty: 2 }
                 ],
                 onOrderDetails: { qty: 10, eta: '2024-02-05' }
             },
@@ -1343,18 +1429,32 @@
                 description: 'Hydraulic Pump HP-200',
                 price: 3200.00,
                 available: 0,
-                onHand: 2,
-                allocated: 2,
+                onHand: 5,
+                allocated: 5,
                 onOrder: 15,
                 availableWOs: [],
                 onHandWOs: [
-                    { woId: 'WO-2024-012', bookingDate: '2024-01-28' }
+                    { woId: 'WO-2024-012', bookingDate: '2024-01-28', qty: 3 },
+                    { woId: 'WO-2024-014', bookingDate: '2024-01-30', qty: 2 }
                 ],
                 allocatedWOs: [
-                    { woId: 'WO-2024-011', bookingDate: '2024-01-27' },
-                    { woId: 'WO-2024-013', bookingDate: '2024-01-29' }
+                    { woId: 'WO-2024-011', bookingDate: '2024-01-27', qty: 3 },
+                    { woId: 'WO-2024-013', bookingDate: '2024-01-29', qty: 2 }
                 ],
                 onOrderDetails: { qty: 15, eta: '2024-02-15' }
+            },
+            {
+                id: '00567890',
+                description: 'Bearing Kit Standard Heavy Duty',
+                price: 156.75,
+                available: 0,
+                onHand: 0,
+                allocated: 0,
+                onOrder: 20,
+                availableWOs: [],
+                onHandWOs: [],
+                allocatedWOs: [],
+                onOrderDetails: { qty: 20, eta: '2024-02-20' }
             }
         ];
 
@@ -1376,6 +1476,8 @@
         };
 
         let currentTab = 'vanStock';
+        let currentFilter = 'all'; // NEW: Filter state
+        let searchTerm = '';
         let filteredParts = [...PARTS_DATA];
         let currentBoxId = null;
         let boxItems = [];
@@ -1395,7 +1497,8 @@
             document.getElementById('vanSearchInput').addEventListener('input', (e) => {
                 clearTimeout(searchDebounce);
                 searchDebounce = setTimeout(() => {
-                    filterParts(e.target.value);
+                    searchTerm = e.target.value;
+                    applyFilters();
                 }, 300);
             });
 
@@ -1424,16 +1527,55 @@
             document.getElementById(tab + 'Page').classList.add('active');
         }
 
-        function filterParts(searchTerm) {
-            const term = searchTerm.toLowerCase().trim();
-            if (!term) {
-                filteredParts = [...PARTS_DATA];
-            } else {
-                filteredParts = PARTS_DATA.filter(p => 
+        // ========================================
+        // NEW: FILTER FUNCTIONALITY
+        // ========================================
+        
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            // Update UI
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.closest('.filter-chip').classList.add('active');
+            
+            applyFilters();
+        }
+
+        function applyFilters() {
+            let result = [...PARTS_DATA];
+            
+            // Apply search filter
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase().trim();
+                result = result.filter(p => 
                     p.id.toLowerCase().includes(term) || 
                     p.description.toLowerCase().includes(term)
                 );
             }
+            
+            // Apply quantity filter
+            switch(currentFilter) {
+                case 'available':
+                    result = result.filter(p => p.available > 0);
+                    break;
+                case 'onhand':
+                    result = result.filter(p => p.onHand > 0);
+                    break;
+                case 'allocated':
+                    result = result.filter(p => p.allocated > 0);
+                    break;
+                case 'onorder':
+                    result = result.filter(p => p.onOrder > 0);
+                    break;
+                case 'all':
+                default:
+                    // No additional filter
+                    break;
+            }
+            
+            filteredParts = result;
             renderPartList();
         }
 
@@ -1504,17 +1646,20 @@
                 </div>
             `;
 
-            // AVAILABLE Section
+            // AVAILABLE Section with QUANTITIES
             if (part.available > 0) {
                 bodyHtml += `
                     <div class="detail-section">
-                        <h4>✅ Available (${part.available})</h4>
+                        <h4>✅ Available (${part.available} total)</h4>
                         ${part.availableWOs.length > 0 ? `
                             <ul class="wo-list">
                                 ${part.availableWOs.map(wo => `
                                     <li class="wo-item">
-                                        <span class="wo-id">${wo.woId}</span>
-                                        <div class="wo-date">📅 Booking: ${wo.bookingDate}</div>
+                                        <div class="wo-info">
+                                            <span class="wo-id">${wo.woId}</span>
+                                            <div class="wo-date">📅 ${wo.bookingDate}</div>
+                                        </div>
+                                        <div class="wo-qty">${wo.qty} qty</div>
                                     </li>
                                 `).join('')}
                             </ul>
@@ -1523,17 +1668,20 @@
                 `;
             }
 
-            // ON HAND Section
+            // ON HAND Section with QUANTITIES
             if (part.onHand > 0) {
                 bodyHtml += `
                     <div class="detail-section">
-                        <h4>📦 On Hand (${part.onHand})</h4>
+                        <h4>📦 On Hand (${part.onHand} total)</h4>
                         ${part.onHandWOs.length > 0 ? `
                             <ul class="wo-list">
                                 ${part.onHandWOs.map(wo => `
                                     <li class="wo-item">
-                                        <span class="wo-id">${wo.woId}</span>
-                                        <div class="wo-date">📅 Booking: ${wo.bookingDate}</div>
+                                        <div class="wo-info">
+                                            <span class="wo-id">${wo.woId}</span>
+                                            <div class="wo-date">📅 ${wo.bookingDate}</div>
+                                        </div>
+                                        <div class="wo-qty">${wo.qty} qty</div>
                                     </li>
                                 `).join('')}
                             </ul>
@@ -1542,17 +1690,20 @@
                 `;
             }
 
-            // ALLOCATED Section - NOW INCLUDED!
+            // ALLOCATED Section with QUANTITIES
             if (part.allocated > 0) {
                 bodyHtml += `
                     <div class="detail-section">
-                        <h4>🔒 Allocated (${part.allocated})</h4>
+                        <h4>🔒 Allocated (${part.allocated} total)</h4>
                         ${part.allocatedWOs.length > 0 ? `
                             <ul class="wo-list">
                                 ${part.allocatedWOs.map(wo => `
                                     <li class="wo-item">
-                                        <span class="wo-id">${wo.woId}</span>
-                                        <div class="wo-date">📅 Booking: ${wo.bookingDate}</div>
+                                        <div class="wo-info">
+                                            <span class="wo-id">${wo.woId}</span>
+                                            <div class="wo-date">📅 ${wo.bookingDate}</div>
+                                        </div>
+                                        <div class="wo-qty">${wo.qty} qty</div>
                                     </li>
                                 `).join('')}
                             </ul>
@@ -1600,7 +1751,6 @@
                 manual: false
             }));
 
-            // ENABLE SUBMIT BUTTON AFTER BOX CONFIRM
             document.getElementById('submitReceptionBtn').disabled = false;
             openBoxContentsModal();
         }
@@ -1666,13 +1816,11 @@
             const checkbox = document.getElementById(`missing-${itemId}`);
             
             if (checkbox.checked) {
-                // OPEN CONFIRMATION MODAL
                 currentMissingItem = itemId;
                 document.getElementById('missingItemName').textContent = item.partId;
-                document.getElementById('missingNote').value = ''; // Reset note
+                document.getElementById('missingNote').value = '';
                 openModal('missingConfirmModal');
             } else {
-                // UNCHECK - no modal
                 item.missing = false;
                 item.missingNote = null;
                 showSnackbar(`${item.partId} unmarked as missing`, () => {
@@ -1816,7 +1964,7 @@
             currentBoxId = null;
             boxItems = [];
             document.getElementById('boxIdInput').value = '';
-            document.getElementById('submitReceptionBtn').disabled = true; // RESET TO DISABLED
+            document.getElementById('submitReceptionBtn').disabled = true;
             closeModal('boxContentsModal');
         }
 
